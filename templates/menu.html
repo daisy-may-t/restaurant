@@ -6,9 +6,26 @@
   <section class="panel">
     <h2>Menu</h2>
 
-    <div class="toolbar">
-      <button class="primary">Add Menu Item</button>
-    </div>
+    {% if error %}
+      <p class="error-message" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('edit_menu_item', item_id=editing_item.id) if editing_item else url_for('menu') }}">
+      <div class="toolbar" style="display: flex; gap: 12px; align-items: end; flex-wrap: wrap;">
+        <label>
+          Name
+          <input type="text" name="name" value="{{ form_values.get('name', '') if form_values is defined else (editing_item.name if editing_item else '') }}" required />
+        </label>
+        <label>
+          Price
+          <input type="number" name="price" step="0.01" min="0" value="{{ form_values.get('price', '') if form_values is defined else ('%.2f'|format(editing_item.price) if editing_item else '') }}" required />
+        </label>
+        <button class="primary" type="submit">{{ 'Save Item' if editing_item else 'Add Menu Item' }}</button>
+        {% if editing_item %}
+          <a href="{{ url_for('menu') }}">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
 
     <table class="data-table">
       <thead>
@@ -19,16 +36,24 @@
         </tr>
       </thead>
       <tbody>
-        {% for item in menu_items %}
+        {% if menu_items %}
+          {% for item in menu_items %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>£{{ '%.2f'|format(item.price) }}</td>
+              <td>
+                <a href="{{ url_for('edit_menu_item', item_id=item.id) }}">Edit</a>
+                <form method="post" action="{{ url_for('delete_menu_item_route', item_id=item.id) }}" style="display: inline;">
+                  <button class="danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
           <tr>
-            <td>{{ item.name }}</td>
-            <td>£{{ '%.2f'|format(item.price) }}</td>
-            <td>
-              <button>Edit</button>
-              <button class="danger">Delete</button>
-            </td>
+            <td colspan="3" class="empty-state">No menu items yet.</td>
           </tr>
-        {% endfor %}
+        {% endif %}
       </tbody>
     </table>
   </section>
