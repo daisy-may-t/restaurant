@@ -34,7 +34,8 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 ## What works now
 
 - Menu page: view and manage menu items.
-- Tables and order pages are still in development.
+- Tables page: select a table and see whether it has an open order.
+- The order page is still in development.
 
 ## Notes
 

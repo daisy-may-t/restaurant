@@ -10,7 +10,7 @@
       {% for table in tables %}
         <a class="table-card" href="{{ url_for('table_order', table_id=table.id) }}">
           <span>{{ table.name }}</span>
-          <small>Open order</small>
+          <small>{{ 'Open order' if table.has_open_order else 'No order' }}</small>
         </a>
       {% endfor %}
     </div>

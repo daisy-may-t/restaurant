@@ -134,7 +134,6 @@ class MenuCrudTests(unittest.TestCase):
             with self.assertRaises(sqlite3.IntegrityError):
                 db.execute("INSERT INTO orders (table_id) VALUES (999)")
             db.rollback()
-            db.execute("INSERT INTO tables (id, name) VALUES (1, 'Table 1')")
             db.execute("INSERT INTO orders (id, table_id) VALUES (1, 1)")
             db.execute("""INSERT INTO order_items
                 (order_id, menu_item_id, item_name, unit_price_pence, quantity)

@@ -83,3 +83,9 @@ def init_db(reset=False):
                     notes TEXT
                 );
             """)
+            if conn.execute("SELECT COUNT(*) FROM tables").fetchone()[0] == 0:
+                conn.executemany(
+                    "INSERT INTO tables (name) VALUES (?)",
+                    [(f"{area}{number}",) for area in ("R", "B")
+                     for number in range(1, 11)],
+                )

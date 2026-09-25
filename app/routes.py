@@ -9,6 +9,7 @@ from .menu_db import (
     get_menu_items,
     update_menu_item,
 )
+from .table_db import get_table, get_tables
 
 
 def validate_menu_form(form):
@@ -36,12 +37,7 @@ def register_routes(app):
 
     @app.route("/tables")
     def tables():
-        tables_data = [
-            {"id": 1, "name": "Table 1"},
-            {"id": 2, "name": "Table 2"},
-            {"id": 3, "name": "Table 3"},
-        ]
-        return render_template("tables.html", tables=tables_data)
+        return render_template("tables.html", tables=get_tables())
 
     @app.route("/menu", methods=["GET", "POST"])
     def menu():
@@ -81,6 +77,8 @@ def register_routes(app):
 
     @app.route("/table/<int:table_id>")
     def table_order(table_id):
-        table = {"id": table_id, "name": f"Table {table_id}"}
+        table = get_table(table_id)
+        if table is None:
+            abort(404)
         order_items = []
         return render_template("table_order.html", table=table, order_items=order_items)
