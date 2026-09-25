@@ -19,6 +19,7 @@ from .order_db import (
     remove_item,
     save_notes,
 )
+from .printer import format_ticket
 from .table_db import get_table, get_tables
 
 
@@ -144,3 +145,18 @@ def register_routes(app):
         if not close_order(table_id):
             abort(404)
         return redirect(url_for("table_order", table_id=table_id), code=303)
+
+    @app.route("/table/<int:table_id>/ticket")
+    def ticket_preview(table_id):
+        table = get_table(table_id)
+        if table is None:
+            abort(404)
+        order = get_open_order(table_id)
+        if order is None:
+            abort(404)
+        if not order["items"]:
+            abort(400, description="Add an item before previewing the ticket.")
+        return render_template(
+            "ticket.html", table=table,
+            ticket=format_ticket(table["name"], order),
+        )

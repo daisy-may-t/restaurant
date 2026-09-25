@@ -37,7 +37,8 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 - Tables page: select a table and see whether it has an open order.
 - Order page: save notes before taking food orders, add and remove items, edit
   quantities, view the saved total, and reset the table for a new order.
-  Printing is still in development.
+- Ticket preview: review the current order and select Print ticket to open the
+  device's print dialog. The network printer must be available on that device.
 
 ## Notes
 

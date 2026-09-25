@@ -176,6 +176,32 @@ button.danger {
   font-size: 1.2rem;
 }
 
+.ticket-preview {
+  max-width: 380px;
+}
+
+.ticket-preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 16px/1.4 monospace;
+}
+
+.ticket-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+@media print {
+  @page { margin: 4mm; }
+
+  body { background: white; }
+  .topbar, .ticket-preview h2, .ticket-actions { display: none; }
+  main.container { max-width: none; padding: 0; }
+  .ticket-preview { max-width: none; padding: 0; box-shadow: none; }
+  .ticket-preview pre { margin: 0; font: 12px/1.2 monospace; }
+}
+
 .order-form form {
   display: flex;
   flex-direction: column;

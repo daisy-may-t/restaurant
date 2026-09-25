@@ -12,6 +12,9 @@
         <button type="submit" class="danger">Reset order</button>
       </form>
     {% endif %}
+    {% if order_items %}
+      <p><a href="{{ url_for('ticket_preview', table_id=table.id) }}">Preview ticket</a></p>
+    {% endif %}
 
     <div class="order-layout">
       <div class="order-list">

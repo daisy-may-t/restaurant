@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket preview - {{ table.name }}{% endblock %}
+
+{% block content %}
+  <section class="panel ticket-preview">
+    <h2>Ticket preview</h2>
+    <pre>{{ ticket }}</pre>
+    <div class="ticket-actions">
+      <button type="button" class="primary" onclick="window.print()">Print ticket</button>
+      <a href="{{ url_for('table_order', table_id=table.id) }}">Back to {{ table.name }}</a>
+    </div>
+  </section>
+{% endblock %}
