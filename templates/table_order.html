@@ -3,19 +3,17 @@
 {% block title %}{{ table.name }}{% endblock %}
 
 {% block content %}
-  <section class="panel">
-    <h2>{{ table.name }}</h2>
-    {% if order %}
-      <form method="post" action="{{ url_for('reset_table_order', table_id=table.id) }}"
-            onsubmit="return confirm('Reset this order? This closes it and clears the table for a new one.');">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="danger">Reset order</button>
-      </form>
-    {% endif %}
-    {% if order_items %}
-      <p><a href="{{ url_for('ticket_preview', table_id=table.id) }}">Preview ticket</a></p>
-    {% endif %}
-
+  <a class="back-link" href="{{ url_for('tables', area=table.area) }}">&larr; Back to tables</a>
+  <section class="panel order-page">
+    <div class="order-page-heading">
+      <h2>{{ table.name }}</h2>
+      {% if order %}
+        {% set item_count = order_items|sum(attribute='quantity') %}
+        <p>Open order · {{ item_count }} {{ 'item' if item_count == 1 else 'items' }}</p>
+      {% else %}
+        <p>No order yet</p>
+      {% endif %}
+    </div>
     <div class="order-layout">
       <div class="order-list">
         <h3>Current order</h3>
@@ -25,19 +23,19 @@
               <li>
                 <div class="order-item-details">
                   <strong>{{ item.item_name }}</strong>
-                  <span>&pound;{{ '%.2f'|format(item.unit_price_pence / 100) }} each</span>
-                  <span>Line: &pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</span>
+                  <span class="item-unit-price">&pound;{{ '%.2f'|format(item.unit_price_pence / 100) }} each</span>
                 </div>
                 <div class="order-item-actions">
-                  <form method="post" action="{{ url_for('update_order_item_quantity', table_id=table.id, item_id=item.id) }}">
+                  <form class="quantity-controls" method="post" action="{{ url_for('update_order_item_quantity', table_id=table.id, item_id=item.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <label for="quantity-{{ item.id }}">Quantity</label>
-                    <input id="quantity-{{ item.id }}" type="number" name="quantity" min="1" max="999" value="{{ item.quantity }}" required />
-                    <button type="submit">Save</button>
+                    <button type="submit" name="change" value="-1" aria-label="Decrease quantity of {{ item.item_name }}" {% if item.quantity == 1 %}disabled{% endif %}>&minus;</button>
+                    <span aria-label="Quantity: {{ item.quantity }}">{{ item.quantity }}</span>
+                    <button type="submit" name="change" value="1" aria-label="Increase quantity of {{ item.item_name }}" {% if item.quantity == 999 %}disabled{% endif %}>+</button>
                   </form>
+                  <strong class="item-line-total">&pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</strong>
                   <form method="post" action="{{ url_for('remove_order_item', table_id=table.id, item_id=item.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <button type="submit" class="danger">Remove</button>
+                    <button type="submit" class="remove-item" aria-label="Remove {{ item.item_name }}">&times;</button>
                   </form>
                 </div>
               </li>
@@ -46,10 +44,20 @@
         {% else %}
           <p class="empty-state">No items yet. Add an item or save notes to begin.</p>
         {% endif %}
-        <p class="order-total"><strong>Total: &pound;{{ '%.2f'|format(total_pence / 100) }}</strong></p>
+        <p class="order-total"><span>Total</span><strong>&pound;{{ '%.2f'|format(total_pence / 100) }}</strong></p>
       </div>
 
       <div class="order-form">
+        <h3>Order notes</h3>
+        <form id="notes-form" method="post" action="{{ url_for('update_order_notes', table_id=table.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <label for="order-notes">Allergies or special requests</label>
+          <textarea id="order-notes" name="notes" rows="4" maxlength="2000">{{ order.notes if order else '' }}</textarea>
+          <p class="form-hint">Save notes before changing items or leaving this page.</p>
+          <p id="notes-warning" class="form-warning" role="alert" hidden>Save your notes before changing the order.</p>
+          <button type="submit">Save notes</button>
+        </form>
+
         <h3>Add item</h3>
         {% if menu_items %}
           <form method="post" action="{{ url_for('add_order_item', table_id=table.id) }}">
@@ -67,15 +75,19 @@
         {% else %}
           <p class="empty-state">Add menu items on the Menu page first.</p>
         {% endif %}
-
-        <h3>Order notes</h3>
-        <form method="post" action="{{ url_for('update_order_notes', table_id=table.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <label for="order-notes">Notes, including allergies or special requests</label>
-          <textarea id="order-notes" name="notes" rows="4" maxlength="2000">{{ order.notes if order else '' }}</textarea>
-          <button type="submit">Save notes</button>
-        </form>
       </div>
+    </div>
+    <div class="order-footer">
+      {% if order_items %}
+        <a class="action-link" href="{{ url_for('ticket_preview', table_id=table.id) }}">Preview ticket</a>
+      {% endif %}
+      {% if order %}
+        <form method="post" action="{{ url_for('reset_table_order', table_id=table.id) }}"
+              onsubmit="return confirm('Reset this order? This closes it and clears the table for a new one.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="danger">Reset order</button>
+        </form>
+      {% endif %}
     </div>
   </section>
 {% endblock %}

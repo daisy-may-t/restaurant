@@ -132,6 +132,61 @@ class OrderFlowTests(unittest.TestCase):
             self.assertEqual(order["items"], [])
             self.assertEqual(order["total_pence"], 0)
 
+    def test_order_controls_and_area_back_link(self):
+        self.add_from_browser(11, self.item_id)
+        page = self.client.get("/table/11").get_data(as_text=True)
+        self.assertIn('href="/tables?area=bar"', page)
+        self.assertIn('aria-label="Increase quantity of Soup"', page)
+        self.assertIn('aria-label="Decrease quantity of Soup" disabled', page)
+        self.assertIn('aria-label="Remove Soup"', page)
+        self.assertIn('id="notes-form"', page)
+        self.assertIn('id="notes-warning"', page)
+        self.assertIn('Preview ticket', page)
+
+    def test_quantity_buttons_use_current_saved_value_and_respect_limits(self):
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            item_id = get_open_order(1)["items"][0]["id"]
+        path = f"/table/1/items/{item_id}/quantity"
+
+        second_client = self.app.test_client()
+        second_client.get("/table/1")
+        with second_client.session_transaction() as session:
+            second_token = session["csrf_token"]
+        self.client.get("/table/1")
+        self.assertEqual(
+            self.post_order_action(path, {"change": "1"}).status_code, 303
+        )
+        self.assertEqual(
+            second_client.post(path, data={"change": "1", "csrf_token": second_token}).status_code,
+            303,
+        )
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["items"][0]["quantity"], 3)
+
+        self.assertEqual(
+            self.post_order_action(path, {"change": "-1"}).status_code, 303
+        )
+        self.assertEqual(
+            self.post_order_action(path, {"change": "0"}).status_code, 400
+        )
+        self.post_order_action(path, {"quantity": "999"})
+        self.assertIn('aria-label="Increase quantity of Soup" disabled',
+                      self.client.get("/table/1").get_data(as_text=True))
+        self.assertEqual(
+            self.post_order_action(path, {"change": "1"}).status_code, 400
+        )
+        self.post_order_action(path, {"quantity": "1"})
+        self.assertEqual(
+            self.post_order_action(path, {"change": "-1"}).status_code, 400
+        )
+        self.assertEqual(
+            self.post_order_action("/table/1/items/999/quantity", {"change": "1"}).status_code,
+            404,
+        )
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["items"][0]["quantity"], 1)
+
     def test_adding_beyond_999_does_not_create_another_line(self):
         self.add_from_browser(1, self.item_id)
         with self.app.app_context():
@@ -163,6 +218,10 @@ class OrderFlowTests(unittest.TestCase):
             self.assertEqual(order["notes"], "No peanuts\nExtra sauce")
             self.assertEqual(order["items"], [])
             order_id = order["id"]
+
+        notes_only_page = self.client.get("/table/1").get_data(as_text=True)
+        self.assertIn("Open order · 0 items", notes_only_page)
+        self.assertIn("Save notes", notes_only_page)
 
         another_client = self.app.test_client()
         self.assertIn(b"No peanuts\nExtra sauce", another_client.get("/table/1").data)

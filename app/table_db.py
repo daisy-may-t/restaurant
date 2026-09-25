@@ -26,4 +26,8 @@ def get_table(table_id):
     row = get_db().execute(
         "SELECT id, name FROM tables WHERE id = ?", (table_id,)
     ).fetchone()
-    return dict(row) if row else None
+    if row is None:
+        return None
+    table = dict(row)
+    table["area"] = "restaurant" if table_id <= 10 else "bar"
+    return table

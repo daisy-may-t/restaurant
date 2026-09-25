@@ -81,6 +81,25 @@ def change_quantity(table_id, item_id, quantity):
     return cursor.rowcount > 0
 
 
+def adjust_quantity(table_id, item_id, change):
+    db = get_db()
+    with db:
+        cursor = db.execute("""
+            UPDATE order_items SET quantity = quantity + ?
+            WHERE id = ? AND order_id IN (
+                SELECT id FROM orders WHERE table_id = ? AND status = 'open'
+            ) AND quantity + ? BETWEEN 1 AND 999
+        """, (change, item_id, table_id, change))
+        if cursor.rowcount:
+            return "updated"
+        item = db.execute("""
+            SELECT 1 FROM order_items WHERE id = ? AND order_id IN (
+                SELECT id FROM orders WHERE table_id = ? AND status = 'open'
+            )
+        """, (item_id, table_id)).fetchone()
+    return "limit" if item else "missing"
+
+
 def remove_item(table_id, item_id):
     db = get_db()
     with db:

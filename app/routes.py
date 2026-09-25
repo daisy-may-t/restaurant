@@ -13,6 +13,7 @@ from .order_db import (
     MenuItemUnavailable,
     QuantityLimitReached,
     add_item,
+    adjust_quantity,
     change_quantity,
     close_order,
     get_open_order,
@@ -120,6 +121,16 @@ def register_routes(app):
 
     @app.route("/table/<int:table_id>/items/<int:item_id>/quantity", methods=["POST"])
     def update_order_item_quantity(table_id, item_id):
+        if "change" in request.form:
+            change = request.form.get("change", type=int)
+            if change not in (-1, 1):
+                abort(400, description="Quantity change must be +1 or -1.")
+            result = adjust_quantity(table_id, item_id, change)
+            if result == "missing":
+                abort(404)
+            if result == "limit":
+                abort(400, description="Quantity must be between 1 and 999.")
+            return redirect(url_for("table_order", table_id=table_id), code=303)
         quantity = request.form.get("quantity", type=int)
         if quantity is None or not 1 <= quantity <= 999:
             abort(400, description="Quantity must be between 1 and 999.")
