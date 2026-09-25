@@ -4,24 +4,17 @@
 
 {% block content %}
   <section class="panel">
-    <div class="order-header">
-      <h2>{{ table.name }}</h2>
-      <div class="order-actions">
-        <button class="secondary">Print</button>
-        <button class="danger">Reset Order</button>
-      </div>
-    </div>
+    <h2>{{ table.name }}</h2>
 
     <div class="order-layout">
       <div class="order-list">
         <h3>Current order</h3>
-
         {% if order_items %}
           <ul class="order-items">
             {% for item in order_items %}
               <li>
-                <span>{{ item.name }} x{{ item.quantity }}</span>
-                <span>£{{ '%.2f'|format(item.price * item.quantity) }}</span>
+                <span>{{ item.item_name }} x{{ item.quantity }}</span>
+                <span>&pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</span>
               </li>
             {% endfor %}
           </ul>
@@ -32,28 +25,22 @@
 
       <div class="order-form">
         <h3>Add item</h3>
-        <form>
-          <label>
-            Menu item
-            <select>
-              <option>Burger</option>
-              <option>Fries</option>
-              <option>Soft Drink</option>
-            </select>
-          </label>
-
-          <label>
-            Quantity
-            <input type="number" value="1" min="1" />
-          </label>
-
-          <label>
-            Notes
-            <textarea rows="4" placeholder="Add freeform notes..."></textarea>
-          </label>
-
-          <button type="submit" class="primary">Add to order</button>
-        </form>
+        {% if menu_items %}
+          <form method="post" action="{{ url_for('add_order_item', table_id=table.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <label>
+              Menu item
+              <select name="menu_item_id" required>
+                {% for item in menu_items %}
+                  <option value="{{ item.id }}">{{ item.name }} - &pound;{{ '%.2f'|format(item.price_pence / 100) }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <button type="submit" class="primary">Add to order</button>
+          </form>
+        {% else %}
+          <p class="empty-state">Add menu items on the Menu page first.</p>
+        {% endif %}
       </div>
     </div>
   </section>

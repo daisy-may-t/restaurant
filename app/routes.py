@@ -9,6 +9,7 @@ from .menu_db import (
     get_menu_items,
     update_menu_item,
 )
+from .order_db import MenuItemUnavailable, add_item, get_open_order
 from .table_db import get_table, get_tables
 
 
@@ -80,5 +81,21 @@ def register_routes(app):
         table = get_table(table_id)
         if table is None:
             abort(404)
-        order_items = []
-        return render_template("table_order.html", table=table, order_items=order_items)
+        order = get_open_order(table_id)
+        return render_template(
+            "table_order.html", table=table,
+            order_items=order["items"] if order else [], menu_items=get_menu_items(),
+        )
+
+    @app.route("/table/<int:table_id>/items", methods=["POST"])
+    def add_order_item(table_id):
+        if get_table(table_id) is None:
+            abort(404)
+        menu_item_id = request.form.get("menu_item_id", type=int)
+        if menu_item_id is None or menu_item_id <= 0:
+            abort(400, description="Choose a menu item.")
+        try:
+            add_item(table_id, menu_item_id)
+        except MenuItemUnavailable:
+            abort(404, description="This menu item is no longer available.")
+        return redirect(url_for("table_order", table_id=table_id), code=303)
