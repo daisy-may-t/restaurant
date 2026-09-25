@@ -6,11 +6,21 @@
   <section class="panel">
     <h2>Tables</h2>
 
+    <nav class="area-tabs" aria-label="Table area">
+      <a href="{{ url_for('tables', area='restaurant') }}" {% if area == 'restaurant' %}aria-current="page"{% endif %}>Restaurant</a>
+      <a href="{{ url_for('tables', area='bar') }}" {% if area == 'bar' %}aria-current="page"{% endif %}>Bar</a>
+    </nav>
+
     <div class="table-grid">
       {% for table in tables %}
-        <a class="table-card" href="{{ url_for('table_order', table_id=table.id) }}">
-          <span>{{ table.name }}</span>
-          <small>{{ 'Open order' if table.has_open_order else 'No order' }}</small>
+        <a class="table-card{{ ' table-card--open' if table.has_open_order else '' }}" href="{{ url_for('table_order', table_id=table.id) }}">
+          <span class="table-card__name">{{ table.name }}</span>
+          {% if table.has_open_order %}
+            <span class="table-card__status">Open order</span>
+            <span class="table-card__summary">{{ table.item_count }} {{ 'item' if table.item_count == 1 else 'items' }} · &pound;{{ '%.2f'|format(table.total_pence / 100) }}</span>
+          {% else %}
+            <span class="table-card__status">Available</span>
+          {% endif %}
         </a>
       {% endfor %}
     </div>

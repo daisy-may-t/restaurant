@@ -48,7 +48,10 @@ def register_routes(app):
 
     @app.route("/tables")
     def tables():
-        return render_template("tables.html", tables=get_tables())
+        area = request.args.get("area", "restaurant")
+        if area not in ("restaurant", "bar"):
+            abort(400, description="Choose Restaurant or Bar.")
+        return render_template("tables.html", tables=get_tables(area), area=area)
 
     @app.route("/menu", methods=["GET", "POST"])
     def menu():

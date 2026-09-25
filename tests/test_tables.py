@@ -38,8 +38,12 @@ class TablePageTests(unittest.TestCase):
         response = self.client.get("/tables")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Window", response.data)
-        self.assertIn(b"B10", response.data)
-        self.assertIn(b"No order", response.data)
+        self.assertNotIn(b"B10", response.data)
+        self.assertIn(b"Available", response.data)
+        self.assertEqual(response.data.count(b'<a class="table-card'), 10)
+        bar_response = self.client.get("/tables?area=bar")
+        self.assertIn(b"B10", bar_response.data)
+        self.assertEqual(bar_response.data.count(b'<a class="table-card'), 10)
 
     def test_table_page_uses_database_name_and_rejects_unknown_id(self):
         with self.app.app_context():
@@ -62,7 +66,45 @@ class TablePageTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         page = response.get_data(as_text=True)
         self.assertIn('href="/table/1"', page)
-        self.assertEqual(page.count('<small>Open order</small>'), 1)
+        self.assertEqual(page.count('class="table-card table-card--open"'), 1)
+        self.assertIn('0 items · &pound;0.00', page)
+
+    def test_area_filter_and_saved_item_summaries(self):
+        with self.app.app_context():
+            db = get_db()
+            restaurant_order = db.execute(
+                "INSERT INTO orders (table_id, notes) VALUES (1, 'No nuts')"
+            ).lastrowid
+            bar_order = db.execute(
+                "INSERT INTO orders (table_id) VALUES (11)"
+            ).lastrowid
+            closed_order = db.execute(
+                "INSERT INTO orders (table_id, status) VALUES (2, 'closed')"
+            ).lastrowid
+            db.executemany(
+                "INSERT INTO order_items "
+                "(order_id, item_name, unit_price_pence, quantity) VALUES (?, ?, ?, ?)",
+                [
+                    (restaurant_order, "Soup", 250, 2),
+                    (restaurant_order, "Tea", 150, 1),
+                    (bar_order, "Water", 200, 1),
+                    (closed_order, "Old meal", 9900, 1),
+                ],
+            )
+            db.commit()
+
+        restaurant = self.client.get("/tables").get_data(as_text=True)
+        self.assertIn('3 items · &pound;6.50', restaurant)
+        self.assertNotIn('href="/table/11"', restaurant)
+        self.assertIn('href="/table/2"', restaurant)
+        self.assertEqual(restaurant.count('class="table-card table-card--open"'), 1)
+        self.assertIn('href="/tables?area=restaurant" aria-current="page"', restaurant)
+
+        bar = self.client.get("/tables?area=bar").get_data(as_text=True)
+        self.assertIn('1 item · &pound;2.00', bar)
+        self.assertNotIn('href="/table/1"', bar)
+        self.assertIn('href="/tables?area=bar" aria-current="page"', bar)
+        self.assertEqual(self.client.get("/tables?area=other").status_code, 400)
 
 if __name__ == "__main__":
     unittest.main()
