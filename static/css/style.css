@@ -89,6 +89,7 @@ input,
 select,
 textarea {
   font: inherit;
+  box-sizing: border-box;
 }
 
 button {
@@ -97,6 +98,7 @@ button {
   padding: 8px 12px;
   background: #fff;
   cursor: pointer;
+  min-height: 44px;
 }
 
 button.primary {
@@ -221,6 +223,7 @@ textarea {
   padding: 10px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
+  max-width: 100%;
 }
 
 .empty-state {
@@ -228,7 +231,10 @@ textarea {
   font-style: italic;
 }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
+  .container { padding: 12px; }
+  .panel { padding: 16px; }
+
   .order-layout {
     grid-template-columns: 1fr;
   }
@@ -238,4 +244,21 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .table-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .order-item-actions form { flex-wrap: wrap; }
+  .ticket-actions { flex-wrap: wrap; }
+}
+
+@media screen and (max-width: 600px) {
+  .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; }
+  .data-table thead { display: none; }
+  .data-table tr { border-bottom: 1px solid #ddd; padding: 10px 0; }
+  .data-table td { border: 0; padding: 6px 0; }
+  .data-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-weight: 700;
+  }
+  .data-table td[data-label="Actions"]::before { display: block; }
+  .data-table td .danger { margin-left: 8px; }
 }

@@ -2,6 +2,10 @@
 
 Follow [README.md](README.md) to set up the project and activate the virtual environment.
 
+`python app.py` runs Waitress on port 5000 for normal use. For local debugging,
+run `python -m flask --app app run --debug` instead; this binds to localhost by
+default. Stop either server before copying or replacing the SQLite database.
+
 ## Menu CRUD
 
 The menu uses GET to display pages and POST forms to add, edit, and delete items.

@@ -5,8 +5,7 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 ## Requirements
 
 - Python 3.10+
-- Flask
-- SQLite
+- A host computer and phones on the same local network
 
 ## Local setup
 
@@ -18,18 +17,14 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
    - Command Prompt: .\.venv\Scripts\activate.bat
 4. Install dependencies:
    pip install -r requirements.txt
-5. Initial database setup (once):
-   flask --app app setup-db
-   
-   or if using the app module directly:
-   python -m flask --app app setup-db
-6. Run the app:
-   flask --app app run
-   
-   or:
-   python app.py
-7. Open the app in your browser at:
-   http://localhost:5000
+5. Initial database setup (once): `python -m flask --app app setup-db`
+6. Start the app on the host computer: `python app.py`. Keep this terminal open
+   while the restaurant uses the app; press Ctrl+C to stop it.
+7. On the host, open `http://localhost:5000`. For phones, run `ipconfig` on the
+   host, find its local IPv4 address, and open `http://<host-ip>:5000` on each
+   phone (for example, `http://192.168.1.20:5000`). `localhost` on a phone
+   points to the phone itself. If Windows asks, allow Python on **Private**
+   networks. Keep the host and phones on the same Wi-Fi/local network.
 
 ## What works now
 
@@ -44,6 +39,10 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 
 - The database is stored locally in the project under the db folder.
 - The database is only initialized when the explicit setup command is run.
-- This is intentionally a lightweight MVP focused on local use and easy maintenance.
+- To back up, stop the app and copy `db/restaurant.db` to a safe location outside
+  this folder. To restore, stop the app and replace `db/restaurant.db` with that
+  copy before starting it again. Do not run `setup-db --reset` to restore data.
+- Keep the app on the restaurant's trusted local network; do not forward port
+  5000 to the internet.
 
 For implementation details and test instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
