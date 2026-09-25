@@ -12,7 +12,7 @@ class QuantityLimitReached(Exception):
 def get_open_order(table_id):
     db = get_db()
     order = db.execute(
-        "SELECT id FROM orders WHERE table_id = ? AND status = 'open'",
+        "SELECT id, notes FROM orders WHERE table_id = ? AND status = 'open'",
         (table_id,),
     ).fetchone()
     if order is None:
@@ -23,6 +23,7 @@ def get_open_order(table_id):
     """, (order["id"],)).fetchall()
     return {
         "id": order["id"],
+        "notes": order["notes"] or "",
         "items": [dict(item) for item in items],
         "total_pence": sum(item["unit_price_pence"] * item["quantity"] for item in items),
     }
@@ -90,3 +91,17 @@ def remove_item(table_id, item_id):
             )
         """, (item_id, table_id))
     return cursor.rowcount > 0
+
+
+def save_notes(table_id, notes):
+    db = get_db()
+    with db:
+        if notes:
+            db.execute("""
+                INSERT INTO orders (table_id, notes) VALUES (?, ?)
+                ON CONFLICT(table_id) WHERE status = 'open' DO NOTHING
+            """, (table_id, notes))
+        db.execute(
+            "UPDATE orders SET notes = ? WHERE table_id = ? AND status = 'open'",
+            (notes, table_id),
+        )

@@ -16,6 +16,7 @@ from .order_db import (
     change_quantity,
     get_open_order,
     remove_item,
+    save_notes,
 )
 from .table_db import get_table, get_tables
 
@@ -92,6 +93,7 @@ def register_routes(app):
         return render_template(
             "table_order.html", table=table,
             order_items=order["items"] if order else [],
+            order=order,
             total_pence=order["total_pence"] if order else 0,
             menu_items=get_menu_items(),
         )
@@ -124,4 +126,14 @@ def register_routes(app):
     def remove_order_item(table_id, item_id):
         if not remove_item(table_id, item_id):
             abort(404)
+        return redirect(url_for("table_order", table_id=table_id), code=303)
+
+    @app.route("/table/<int:table_id>/notes", methods=["POST"])
+    def update_order_notes(table_id):
+        if get_table(table_id) is None:
+            abort(404)
+        notes = request.form.get("notes")
+        if notes is None or len(notes) > 2000:
+            abort(400, description="Notes must be 2,000 characters or fewer.")
+        save_notes(table_id, notes.strip())
         return redirect(url_for("table_order", table_id=table_id), code=303)

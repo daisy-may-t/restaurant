@@ -7,7 +7,7 @@ from threading import Barrier
 from app import create_app
 from app.db import get_db, init_db
 from app.menu_db import create_menu_item, update_menu_item
-from app.order_db import add_item, get_open_order
+from app.order_db import add_item, get_open_order, save_notes
 
 
 class FirstOrderItemTests(unittest.TestCase):
@@ -153,6 +153,76 @@ class FirstOrderItemTests(unittest.TestCase):
             self.assertEqual(len(order["items"]), 1)
             self.assertEqual(order["items"][0]["quantity"], 999)
             self.assertEqual(order["total_pence"], 999 * 525)
+
+    def test_notes_persist_across_devices_and_can_be_cleared(self):
+        self.assertIn(b'name="notes"', self.client.get("/table/1").data)
+        response = self.post_order_action(
+            "/table/1/notes", {"notes": "  No peanuts\nExtra sauce  "}
+        )
+        self.assertEqual(response.status_code, 303)
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertEqual(order["notes"], "No peanuts\nExtra sauce")
+            self.assertEqual(order["items"], [])
+            order_id = order["id"]
+
+        another_client = self.app.test_client()
+        self.assertIn(b"No peanuts\nExtra sauce", another_client.get("/table/1").data)
+        self.assertIn(b"Open order", another_client.get("/tables").data)
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertEqual(order["id"], order_id)
+            self.assertEqual(order["notes"], "No peanuts\nExtra sauce")
+            self.assertEqual(len(order["items"]), 1)
+        self.assertEqual(
+            self.post_order_action("/table/1/notes", {"notes": ""}).status_code,
+            303,
+        )
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["notes"], "")
+
+    def test_blank_notes_do_not_create_order_and_notes_have_size_limit(self):
+        self.assertEqual(
+            self.post_order_action("/table/1/notes", {"notes": "   "}).status_code,
+            303,
+        )
+        with self.app.app_context():
+            self.assertEqual(get_db().execute("SELECT COUNT(*) FROM orders").fetchone()[0], 0)
+        self.assertEqual(
+            self.post_order_action("/table/1/notes", {"notes": "x" * 2001}).status_code,
+            400,
+        )
+        self.assertEqual(
+            self.post_order_action("/table/999/notes", {"notes": "Wrong table"}).status_code,
+            404,
+        )
+        with self.app.app_context():
+            self.assertIsNone(get_open_order(1))
+
+    def test_notes_and_first_item_started_together_share_one_order(self):
+        barrier = Barrier(2)
+
+        def save_note():
+            with self.app.app_context():
+                barrier.wait()
+                save_notes(1, "No nuts")
+
+        def add_food():
+            with self.app.app_context():
+                barrier.wait()
+                add_item(1, self.item_id)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(save_note), pool.submit(add_food)]
+            for future in futures:
+                future.result()
+
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertEqual(order["notes"], "No nuts")
+            self.assertEqual(len(order["items"]), 1)
+            self.assertEqual(get_db().execute("SELECT COUNT(*) FROM orders").fetchone()[0], 1)
 
     def test_invalid_or_other_tables_lines_cannot_be_changed(self):
         self.add_from_browser(1, self.item_id)
