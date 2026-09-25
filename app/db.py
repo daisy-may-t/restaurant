@@ -1,16 +1,21 @@
+from contextlib import closing
 import os
 import sqlite3
 
-from flask import g
+from flask import current_app, g
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "db", "restaurant.db")
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "db", "restaurant.db")
+
+
+def get_db_path():
+    return current_app.config.get("DATABASE", DEFAULT_DB_PATH)
 
 
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
+        g.db = sqlite3.connect(get_db_path())
         g.db.row_factory = sqlite3.Row
     return g.db
 
@@ -22,10 +27,12 @@ def close_db(exception=None):
 
 
 def init_db():
-    db_dir = os.path.dirname(DB_PATH)
-    os.makedirs(db_dir, exist_ok=True)
+    db_path = get_db_path()
+    db_dir = os.path.dirname(db_path)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with closing(sqlite3.connect(db_path)) as conn:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS menu_items (
