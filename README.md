@@ -42,3 +42,5 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 - The database is stored locally in the project under the db folder.
 - The database is only initialized when the explicit setup command is run.
 - This is intentionally a lightweight MVP focused on local use and easy maintenance.
+
+For implementation details and test instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
