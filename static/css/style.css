@@ -143,8 +143,37 @@ button.danger {
 .order-items li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
+}
+
+.order-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-item-actions,
+.order-item-actions form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-item-actions {
+  flex-wrap: wrap;
+}
+
+.order-item-actions input[type="number"] {
+  width: 70px;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.2rem;
 }
 
 .order-form form {

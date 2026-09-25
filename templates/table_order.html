@@ -13,14 +13,30 @@
           <ul class="order-items">
             {% for item in order_items %}
               <li>
-                <span>{{ item.item_name }} x{{ item.quantity }}</span>
-                <span>&pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</span>
+                <div class="order-item-details">
+                  <strong>{{ item.item_name }}</strong>
+                  <span>&pound;{{ '%.2f'|format(item.unit_price_pence / 100) }} each</span>
+                  <span>Line: &pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</span>
+                </div>
+                <div class="order-item-actions">
+                  <form method="post" action="{{ url_for('update_order_item_quantity', table_id=table.id, item_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <label for="quantity-{{ item.id }}">Quantity</label>
+                    <input id="quantity-{{ item.id }}" type="number" name="quantity" min="1" max="999" value="{{ item.quantity }}" required />
+                    <button type="submit">Save</button>
+                  </form>
+                  <form method="post" action="{{ url_for('remove_order_item', table_id=table.id, item_id=item.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="danger">Remove</button>
+                  </form>
+                </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
           <p class="empty-state">No items yet. Add the first item to create the order.</p>
         {% endif %}
+        <p class="order-total"><strong>Total: &pound;{{ '%.2f'|format(total_pence / 100) }}</strong></p>
       </div>
 
       <div class="order-form">

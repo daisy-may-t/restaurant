@@ -35,8 +35,8 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 
 - Menu page: view and manage menu items.
 - Tables page: select a table and see whether it has an open order.
-- Order page: add menu items to a table and view its saved order. Quantity
-  controls, notes, totals, reset, and printing are still in development.
+- Order page: add and remove items, edit quantities, and view the saved total.
+  Notes, reset, and printing are still in development.
 
 ## Notes
 

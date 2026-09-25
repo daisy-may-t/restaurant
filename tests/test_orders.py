@@ -7,7 +7,7 @@ from threading import Barrier
 from app import create_app
 from app.db import get_db, init_db
 from app.menu_db import create_menu_item, update_menu_item
-from app.order_db import add_item
+from app.order_db import add_item, get_open_order
 
 
 class FirstOrderItemTests(unittest.TestCase):
@@ -32,6 +32,12 @@ class FirstOrderItemTests(unittest.TestCase):
             f"/table/{table_id}/items",
             data={"menu_item_id": str(item_id), "csrf_token": token},
         )
+
+    def post_order_action(self, path, data=None):
+        self.client.get("/table/1")
+        with self.client.session_transaction() as session:
+            token = session["csrf_token"]
+        return self.client.post(path, data={**(data or {}), "csrf_token": token})
 
     def test_first_item_creates_persistent_order(self):
         self.assertEqual(self.client.get("/table/1").status_code, 200)
@@ -93,7 +99,88 @@ class FirstOrderItemTests(unittest.TestCase):
         with self.app.app_context():
             db = get_db()
             self.assertEqual(db.execute("SELECT COUNT(*) FROM orders").fetchone()[0], 1)
-            self.assertEqual(db.execute("SELECT COUNT(*) FROM order_items").fetchone()[0], 2)
+            lines = db.execute("SELECT quantity FROM order_items").fetchall()
+            self.assertEqual([row["quantity"] for row in lines], [2])
+
+    def test_quantity_change_and_removal_recalculate_total(self):
+        self.add_from_browser(1, self.item_id)
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            tea_id = create_menu_item("Tea", 200)
+        self.add_from_browser(1, tea_id)
+        with self.app.app_context():
+            order = get_open_order(1)
+            first_id, second_id = [item["id"] for item in order["items"]]
+            self.assertEqual(order["items"][0]["quantity"], 2)
+            self.assertEqual(order["total_pence"], 1250)
+
+        response = self.post_order_action(
+            f"/table/1/items/{first_id}/quantity", {"quantity": "3"}
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertIn(b"17.75", self.client.get("/table/1").data)
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["total_pence"], 1775)
+
+        response = self.post_order_action(f"/table/1/items/{second_id}/remove")
+        self.assertEqual(response.status_code, 303)
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["total_pence"], 1575)
+
+        self.post_order_action(f"/table/1/items/{first_id}/remove")
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertIsNotNone(order)
+            self.assertEqual(order["items"], [])
+            self.assertEqual(order["total_pence"], 0)
+
+    def test_adding_beyond_999_does_not_create_another_line(self):
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            item_id = get_open_order(1)["items"][0]["id"]
+        self.assertEqual(
+            self.post_order_action(
+                f"/table/1/items/{item_id}/quantity", {"quantity": "998"}
+            ).status_code,
+            303,
+        )
+        self.assertEqual(self.add_from_browser(1, self.item_id).status_code, 303)
+        response = self.add_from_browser(1, self.item_id)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"maximum quantity of 999", response.data)
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertEqual(len(order["items"]), 1)
+            self.assertEqual(order["items"][0]["quantity"], 999)
+            self.assertEqual(order["total_pence"], 999 * 525)
+
+    def test_invalid_or_other_tables_lines_cannot_be_changed(self):
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            item_id = get_open_order(1)["items"][0]["id"]
+        quantity_path = f"/table/1/items/{item_id}/quantity"
+        for value in ("", "0", "-1", "abc", "1000"):
+            with self.subTest(quantity=value):
+                self.assertEqual(
+                    self.post_order_action(quantity_path, {"quantity": value}).status_code,
+                    400,
+                )
+        self.assertEqual(
+            self.post_order_action(
+                f"/table/2/items/{item_id}/quantity", {"quantity": "4"}
+            ).status_code,
+            404,
+        )
+        self.assertEqual(
+            self.post_order_action(f"/table/2/items/{item_id}/remove").status_code,
+            404,
+        )
+        self.assertEqual(
+            self.post_order_action("/table/1/items/999/remove").status_code, 404
+        )
+        with self.app.app_context():
+            self.assertEqual(get_open_order(1)["items"][0]["quantity"], 1)
+            self.assertEqual(get_open_order(1)["total_pence"], 525)
 
 
 if __name__ == "__main__":

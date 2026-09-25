@@ -9,7 +9,14 @@ from .menu_db import (
     get_menu_items,
     update_menu_item,
 )
-from .order_db import MenuItemUnavailable, add_item, get_open_order
+from .order_db import (
+    MenuItemUnavailable,
+    QuantityLimitReached,
+    add_item,
+    change_quantity,
+    get_open_order,
+    remove_item,
+)
 from .table_db import get_table, get_tables
 
 
@@ -84,7 +91,9 @@ def register_routes(app):
         order = get_open_order(table_id)
         return render_template(
             "table_order.html", table=table,
-            order_items=order["items"] if order else [], menu_items=get_menu_items(),
+            order_items=order["items"] if order else [],
+            total_pence=order["total_pence"] if order else 0,
+            menu_items=get_menu_items(),
         )
 
     @app.route("/table/<int:table_id>/items", methods=["POST"])
@@ -98,4 +107,21 @@ def register_routes(app):
             add_item(table_id, menu_item_id)
         except MenuItemUnavailable:
             abort(404, description="This menu item is no longer available.")
+        except QuantityLimitReached:
+            abort(400, description="This item is already at the maximum quantity of 999.")
+        return redirect(url_for("table_order", table_id=table_id), code=303)
+
+    @app.route("/table/<int:table_id>/items/<int:item_id>/quantity", methods=["POST"])
+    def update_order_item_quantity(table_id, item_id):
+        quantity = request.form.get("quantity", type=int)
+        if quantity is None or not 1 <= quantity <= 999:
+            abort(400, description="Quantity must be between 1 and 999.")
+        if not change_quantity(table_id, item_id, quantity):
+            abort(404)
+        return redirect(url_for("table_order", table_id=table_id), code=303)
+
+    @app.route("/table/<int:table_id>/items/<int:item_id>/remove", methods=["POST"])
+    def remove_order_item(table_id, item_id):
+        if not remove_item(table_id, item_id):
+            abort(404)
         return redirect(url_for("table_order", table_id=table_id), code=303)
