@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Tables{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h2>Tables</h2>
+
+    <div class="table-grid">
+      {% for table in tables %}
+        <a class="table-card" href="{{ url_for('table_order', table_id=table.id) }}">
+          <span>{{ table.name }}</span>
+          <small>Open order</small>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

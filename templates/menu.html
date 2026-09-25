@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h2>Menu</h2>
+
+    <div class="toolbar">
+      <button class="primary">Add Menu Item</button>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in menu_items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>£{{ '%.2f'|format(item.price) }}</td>
+            <td>
+              <button>Edit</button>
+              <button class="danger">Delete</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

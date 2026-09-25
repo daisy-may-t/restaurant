@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ table.name }}{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <div class="order-header">
+      <h2>{{ table.name }}</h2>
+      <div class="order-actions">
+        <button class="secondary">Print</button>
+        <button class="danger">Reset Order</button>
+      </div>
+    </div>
+
+    <div class="order-layout">
+      <div class="order-list">
+        <h3>Current order</h3>
+
+        {% if order_items %}
+          <ul class="order-items">
+            {% for item in order_items %}
+              <li>
+                <span>{{ item.name }} x{{ item.quantity }}</span>
+                <span>£{{ '%.2f'|format(item.price * item.quantity) }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-state">No items yet. Add the first item to create the order.</p>
+        {% endif %}
+      </div>
+
+      <div class="order-form">
+        <h3>Add item</h3>
+        <form>
+          <label>
+            Menu item
+            <select>
+              <option>Burger</option>
+              <option>Fries</option>
+              <option>Soft Drink</option>
+            </select>
+          </label>
+
+          <label>
+            Quantity
+            <input type="number" value="1" min="1" />
+          </label>
+
+          <label>
+            Notes
+            <textarea rows="4" placeholder="Add freeform notes..."></textarea>
+          </label>
+
+          <button type="submit" class="primary">Add to order</button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}
