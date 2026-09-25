@@ -9,10 +9,10 @@
   <body>
     <header class="topbar">
       <div class="container">
-        <h1>Restaurant App</h1>
-        <nav>
-          <a href="{{ url_for('tables') }}">Tables</a>
-          <a href="{{ url_for('menu') }}">Menu</a>
+        <span class="app-name">Restaurant App</span>
+        <nav class="primary-nav" aria-label="Main navigation">
+          <a href="{{ url_for('tables') }}" {% if request.endpoint not in ('menu', 'edit_menu_item', 'delete_menu_item_route') %}aria-current="page"{% endif %}>Tables</a>
+          <a href="{{ url_for('menu') }}" {% if request.endpoint in ('menu', 'edit_menu_item', 'delete_menu_item_route') %}aria-current="page"{% endif %}>Menu</a>
         </nav>
       </div>
     </header>
