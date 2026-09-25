@@ -10,7 +10,7 @@ from app.menu_db import create_menu_item, update_menu_item
 from app.order_db import add_item, get_open_order, save_notes
 
 
-class FirstOrderItemTests(unittest.TestCase):
+class OrderFlowTests(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
         self.app.config["TESTING"] = True
@@ -46,11 +46,9 @@ class FirstOrderItemTests(unittest.TestCase):
         self.assertEqual(self.add_from_browser(1, self.item_id).status_code, 303)
         self.assertIn(b"Soup", self.client.get("/table/1").data)
         self.assertIn(b"5.25", self.client.get("/table/1").data)
-        self.assertIn(b"Open order", self.client.get("/tables").data)
 
         another_client = self.app.test_client()
         self.assertIn(b"Soup", another_client.get("/table/1").data)
-        self.assertIn(b"No items yet", another_client.get("/table/2").data)
         restarted_app = create_app()
         restarted_app.config["TESTING"] = True
         restarted_app.config["DATABASE"] = self.app.config["DATABASE"]

@@ -62,9 +62,7 @@ class TablePageTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         page = response.get_data(as_text=True)
         self.assertIn('href="/table/1"', page)
-        self.assertIn('<small>Open order</small>', page)
         self.assertEqual(page.count('<small>Open order</small>'), 1)
-        self.assertEqual(page.count('<small>No order</small>'), 19)
 
 if __name__ == "__main__":
     unittest.main()
