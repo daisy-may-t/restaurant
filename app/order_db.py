@@ -105,3 +105,14 @@ def save_notes(table_id, notes):
             "UPDATE orders SET notes = ? WHERE table_id = ? AND status = 'open'",
             (notes, table_id),
         )
+
+
+def close_order(table_id):
+    db = get_db()
+    with db:
+        cursor = db.execute(
+            "UPDATE orders SET status = 'closed' "
+            "WHERE table_id = ? AND status = 'open'",
+            (table_id,),
+        )
+    return cursor.rowcount > 0

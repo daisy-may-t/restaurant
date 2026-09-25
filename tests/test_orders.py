@@ -224,6 +224,57 @@ class FirstOrderItemTests(unittest.TestCase):
             self.assertEqual(len(order["items"]), 1)
             self.assertEqual(get_db().execute("SELECT COUNT(*) FROM orders").fetchone()[0], 1)
 
+    def test_reset_closes_order_and_next_item_starts_fresh(self):
+        self.add_from_browser(1, self.item_id)
+        self.post_order_action("/table/1/notes", {"notes": "No peanuts"})
+        with self.app.app_context():
+            old_order = get_open_order(1)
+            old_item_id = old_order["items"][0]["id"]
+        self.assertIn(b"Reset order", self.client.get("/table/1").data)
+        self.assertEqual(self.client.get("/table/1/reset").status_code, 405)
+
+        response = self.post_order_action("/table/1/reset")
+        self.assertEqual(response.status_code, 303)
+        with self.app.app_context():
+            self.assertIsNone(get_open_order(1))
+        self.assertNotIn(b"Reset order", self.client.get("/table/1").data)
+        self.assertNotIn(b"Open order", self.client.get("/tables").data)
+        self.assertEqual(
+            self.post_order_action(
+                f"/table/1/items/{old_item_id}/quantity", {"quantity": "2"}
+            ).status_code,
+            404,
+        )
+
+        self.add_from_browser(1, self.item_id)
+        with self.app.app_context():
+            db = get_db()
+            current = get_open_order(1)
+            self.assertNotEqual(current["id"], old_order["id"])
+            self.assertEqual(current["notes"], "")
+            self.assertEqual(len(current["items"]), 1)
+            rows = db.execute(
+                "SELECT id, status, notes FROM orders WHERE table_id = 1 ORDER BY id"
+            ).fetchall()
+            self.assertEqual([row["status"] for row in rows], ["closed", "open"])
+            self.assertEqual(rows[0]["notes"], "No peanuts")
+            self.assertEqual(db.execute(
+                "SELECT COUNT(*) FROM order_items WHERE order_id = ?",
+                (old_order["id"],),
+            ).fetchone()[0], 1)
+
+    def test_reset_handles_notes_only_order_and_requires_open_order(self):
+        self.assertEqual(self.post_order_action("/table/1/reset").status_code, 404)
+        self.post_order_action("/table/1/notes", {"notes": "Dairy allergy"})
+        self.assertEqual(self.post_order_action("/table/1/reset").status_code, 303)
+        self.assertEqual(self.post_order_action("/table/1/reset").status_code, 404)
+        with self.app.app_context():
+            self.assertIsNone(get_open_order(1))
+            row = get_db().execute(
+                "SELECT status, notes FROM orders WHERE table_id = 1"
+            ).fetchone()
+            self.assertEqual(tuple(row), ("closed", "Dairy allergy"))
+
     def test_invalid_or_other_tables_lines_cannot_be_changed(self):
         self.add_from_browser(1, self.item_id)
         with self.app.app_context():

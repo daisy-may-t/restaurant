@@ -5,6 +5,13 @@
 {% block content %}
   <section class="panel">
     <h2>{{ table.name }}</h2>
+    {% if order %}
+      <form method="post" action="{{ url_for('reset_table_order', table_id=table.id) }}"
+            onsubmit="return confirm('Reset this order? This closes it and clears the table for a new one.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="danger">Reset order</button>
+      </form>
+    {% endif %}
 
     <div class="order-layout">
       <div class="order-list">

@@ -14,6 +14,7 @@ from .order_db import (
     QuantityLimitReached,
     add_item,
     change_quantity,
+    close_order,
     get_open_order,
     remove_item,
     save_notes,
@@ -136,4 +137,10 @@ def register_routes(app):
         if notes is None or len(notes) > 2000:
             abort(400, description="Notes must be 2,000 characters or fewer.")
         save_notes(table_id, notes.strip())
+        return redirect(url_for("table_order", table_id=table_id), code=303)
+
+    @app.route("/table/<int:table_id>/reset", methods=["POST"])
+    def reset_table_order(table_id):
+        if not close_order(table_id):
+            abort(404)
         return redirect(url_for("table_order", table_id=table_id), code=303)
