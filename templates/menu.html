@@ -11,6 +11,7 @@
     {% endif %}
 
     <form method="post" action="{{ url_for('edit_menu_item', item_id=editing_item.id) if editing_item else url_for('menu') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div class="toolbar" style="display: flex; gap: 12px; align-items: end; flex-wrap: wrap;">
         <label>
           Name
@@ -18,7 +19,7 @@
         </label>
         <label>
           Price
-          <input type="number" name="price" step="0.01" min="0" value="{{ form_values.get('price', '') if form_values is defined else ('%.2f'|format(editing_item.price) if editing_item else '') }}" required />
+          <input type="number" name="price" step="0.01" min="0" max="999.99" value="{{ form_values.get('price', '') if form_values is defined else ('%.2f'|format(editing_item.price_pence / 100) if editing_item else '') }}" required />
         </label>
         <button class="primary" type="submit">{{ 'Save Item' if editing_item else 'Add Menu Item' }}</button>
         {% if editing_item %}
@@ -40,10 +41,11 @@
           {% for item in menu_items %}
             <tr>
               <td>{{ item.name }}</td>
-              <td>£{{ '%.2f'|format(item.price) }}</td>
+              <td>£{{ '%.2f'|format(item.price_pence / 100) }}</td>
               <td>
                 <a href="{{ url_for('edit_menu_item', item_id=item.id) }}">Edit</a>
-                <form method="post" action="{{ url_for('delete_menu_item_route', item_id=item.id) }}" style="display: inline;">
+                <form method="post" action="{{ url_for('delete_menu_item_route', item_id=item.id) }}" style="display: inline;" onsubmit="return confirm('Delete this menu item?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <button class="danger" type="submit">Delete</button>
                 </form>
               </td>

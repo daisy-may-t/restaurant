@@ -18,7 +18,7 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
    - Command Prompt: .\.venv\Scripts\activate.bat
 4. Install dependencies:
    pip install -r requirements.txt
-5. Initial database setup:
+5. Initial database setup (once):
    flask --app app setup-db
    
    or if using the app module directly:
@@ -31,11 +31,10 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 7. Open the app in your browser at:
    http://localhost:5000
 
-## App structure
+## What works now
 
-- Tables page: choose a table and manage the order for that table.
 - Menu page: view and manage menu items.
-- Order page: add items, edit quantity, add notes, print, and reset the active order.
+- Tables and order pages are still in development.
 
 ## Notes
 

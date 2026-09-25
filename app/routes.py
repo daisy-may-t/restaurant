@@ -1,5 +1,4 @@
 from decimal import Decimal, InvalidOperation
-import math
 
 from flask import abort, redirect, render_template, request, url_for
 
@@ -22,13 +21,12 @@ def validate_menu_form(form):
         price = Decimal(price_text)
     except InvalidOperation:
         return None, "Price must be a valid number."
-    
-    if not price.is_finite() or price < 0 or not math.isfinite(float(price)):
-        return None, "Price must be a finite, non-negative number."
+    if not price.is_finite() or price < 0 or price > 999.99:
+        return None, "Price must be between 0 and 999.99 pounds."
     if price.as_tuple().exponent < -2:
         return None, "Price must have at most two decimal places."
-    
-    return (name, float(price)), None
+
+    return (name, int(price * 100)), None
 
 
 def register_routes(app):
@@ -70,7 +68,8 @@ def register_routes(app):
                     "menu.html", menu_items=get_menu_items(), editing_item=item,
                     form_values=request.form, error=error,
                 ), 400
-            update_menu_item(item_id, *values)
+            if not update_menu_item(item_id, *values):
+                abort(404)
             return redirect(url_for("menu"), code=303)
         return render_template("menu.html", menu_items=get_menu_items(), editing_item=item)
 
