@@ -187,9 +187,12 @@ h2 {
   border-top-left-radius: 0;
 }
 
-.order-menu-tabs {
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+.order-menu-catalog {
+  min-width: 0;
+}
+
+.order-menu-panel--tabbed {
+  border-top-left-radius: 0;
 }
 
 .section-intro {
@@ -475,8 +478,7 @@ button.danger:hover {
 }
 
 .order-page-heading p,
-.item-unit-price,
-.form-hint {
+.item-unit-price {
   color: var(--color-muted);
 }
 
@@ -500,6 +502,54 @@ button.danger:hover {
 .order-list h3,
 .order-form-section h3 {
   margin-top: 0;
+}
+
+.order-menu-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.order-menu-items li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.order-menu-items form {
+  display: block;
+}
+
+.order-menu-items button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.order-menu-items button:hover:not(:disabled) {
+  border: 0;
+  background: var(--color-surface-muted);
+}
+
+.order-menu-item-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.order-menu-item-price {
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.order-menu-items .icon {
+  color: var(--color-primary);
 }
 
 .order-items {
@@ -612,11 +662,6 @@ button.remove-item:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.form-hint {
-  margin: 0;
-  font-size: 0.9rem;
 }
 
 .form-warning {

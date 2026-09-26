@@ -66,10 +66,15 @@ class OrderFlowTests(unittest.TestCase):
         selected_url = f"/table/1?category={quote(long_category)}"
         page = self.client.get(selected_url).get_data(as_text=True)
         self.assertIn('aria-label="Menu categories"', page)
-        self.assertIn(f'name="menu_item_id" required', page)
-        self.assertIn(f'<option value="{noodle_id}">Pad Thai', page)
-        self.assertNotIn(f'<option value="{self.item_id}">Soup', page)
+        self.assertLess(page.index('</nav>', page.index('aria-label="Menu categories"')),
+                        page.index('class="order-form-section order-menu-panel order-menu-panel--tabbed"'))
+        self.assertIn(f'name="menu_item_id" value="{noodle_id}"', page)
+        self.assertIn('aria-label="Add Pad Thai to order"', page)
+        self.assertNotIn('aria-label="Add Soup to order"', page)
         self.assertIn("Chef&#39;s very special noodle dishes", page)
+        self.assertLess(page.index('class="order-menu-items"'), page.index('id="order-notes"'))
+        self.assertLess(page.index('id="order-notes"'), page.index('class="order-list"'))
+        self.assertNotIn("Save notes before changing items", page)
 
         self.client.get("/table/1")
         with self.client.session_transaction() as session:

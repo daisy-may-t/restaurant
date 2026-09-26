@@ -16,6 +16,48 @@
       {% endif %}
     </div>
     <div class="order-layout">
+      <div class="order-form">
+        <div class="order-menu-catalog">
+          {% if categories %}
+            <nav class="menu-tabs" aria-label="Menu categories">
+              <a href="{{ url_for('table_order', table_id=table.id) }}" {% if selected_category is none %}aria-current="page"{% endif %}>All</a>
+              {% for category in categories %}
+                <a href="{{ url_for('table_order', table_id=table.id, category=category) }}" {% if selected_category == category %}aria-current="page"{% endif %}>{{ category }}</a>
+              {% endfor %}
+            </nav>
+          {% endif %}
+          <section class="order-form-section order-menu-panel{{ ' order-menu-panel--tabbed' if categories else '' }}">
+            {% if categories %}
+              <ul class="order-menu-items">
+                {% for item in menu_items %}
+                  <li>
+                    <form method="post" action="{{ url_for('add_order_item', table_id=table.id, category=selected_category) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                      <button type="submit" name="menu_item_id" value="{{ item.id }}" aria-label="Add {{ item.name }} to order">
+                        <span class="order-menu-item-name">{{ item.name }}</span>
+                        <span class="order-menu-item-price">&pound;{{ '%.2f'|format(item.price_pence / 100) }}</span>
+                        {{ icon('plus') }}
+                      </button>
+                    </form>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="empty-state">Add menu items on the Menu page first.</p>
+            {% endif %}
+          </section>
+        </div>
+
+        <section class="order-form-section">
+          <h3>Order notes</h3>
+          <form id="notes-form" method="post" action="{{ url_for('update_order_notes', table_id=table.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <textarea id="order-notes" name="notes" rows="4" maxlength="2000" aria-label="Order notes" placeholder="Add notes here">{{ order.notes if order else '' }}</textarea>
+            <p id="notes-warning" class="form-warning" role="alert" hidden>Save your notes before changing the order.</p>
+            <button type="submit">Save notes</button>
+          </form>
+        </section>
+      </div>
       <div class="order-list">
         <h3>Current order</h3>
         {% if order_items %}
@@ -48,45 +90,6 @@
         <p class="order-total"><span>Total</span><strong>&pound;{{ '%.2f'|format(total_pence / 100) }}</strong></p>
       </div>
 
-      <div class="order-form">
-        <section class="order-form-section">
-          <h3>Add item</h3>
-          {% if categories %}
-            <nav class="menu-tabs order-menu-tabs" aria-label="Menu categories">
-              <a href="{{ url_for('table_order', table_id=table.id) }}" {% if selected_category is none %}aria-current="page"{% endif %}>All</a>
-              {% for category in categories %}
-                <a href="{{ url_for('table_order', table_id=table.id, category=category) }}" {% if selected_category == category %}aria-current="page"{% endif %}>{{ category }}</a>
-              {% endfor %}
-            </nav>
-            <form method="post" action="{{ url_for('add_order_item', table_id=table.id, category=selected_category) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-              <label>
-                Menu item
-                <select name="menu_item_id" required>
-                  {% for item in menu_items %}
-                    <option value="{{ item.id }}">{{ item.name }} - &pound;{{ '%.2f'|format(item.price_pence / 100) }}</option>
-                  {% endfor %}
-                </select>
-              </label>
-              <button type="submit" class="primary">{{ icon('plus') }} Add to order</button>
-            </form>
-          {% else %}
-            <p class="empty-state">Add menu items on the Menu page first.</p>
-          {% endif %}
-        </section>
-
-        <section class="order-form-section">
-          <h3>Order notes</h3>
-          <form id="notes-form" method="post" action="{{ url_for('update_order_notes', table_id=table.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <label for="order-notes">Allergies or special requests</label>
-            <textarea id="order-notes" name="notes" rows="4" maxlength="2000">{{ order.notes if order else '' }}</textarea>
-            <p class="form-hint">Save notes before changing items or leaving this page.</p>
-            <p id="notes-warning" class="form-warning" role="alert" hidden>Save your notes before changing the order.</p>
-            <button type="submit">Save notes</button>
-          </form>
-        </section>
-      </div>
     </div>
     <div class="order-footer">
       {% if order_items %}
