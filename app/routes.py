@@ -27,9 +27,12 @@ from .table_db import get_table, get_tables
 def validate_menu_form(form):
     name = form.get("name", "").strip()
     price_text = form.get("price", "").strip()
+    category = form.get("category", "Other").strip()
 
     if not name or not price_text:
         return None, "Name and price are required."
+    if not category or len(category) > 60:
+        return None, "Category must be between 1 and 60 characters."
     try:
         price = Decimal(price_text)
     except InvalidOperation:
@@ -39,7 +42,7 @@ def validate_menu_form(form):
     if price.as_tuple().exponent < -2:
         return None, "Price must have at most two decimal places."
 
-    return (name, int(price * 100)), None
+    return (name, int(price * 100), category), None
 
 
 def register_routes(app):

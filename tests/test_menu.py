@@ -29,25 +29,33 @@ class MenuCrudTests(unittest.TestCase):
         )
 
     def test_menu_crud(self):
-        response = self.post("/menu", {"name": "Burger", "price": "12.50"})
+        response = self.post("/menu", {
+            "name": "Burger", "price": "12.50", "category": "Grill"
+        })
         self.assertEqual(response.status_code, 303)
         with self.app.app_context():
             item = get_menu_items()[0]
             self.assertEqual(item["price_pence"], 1250)
+            self.assertEqual(item["category"], "Grill")
         response = self.client.get("/menu")
         self.assertIn(b"Burger", response.data)
         self.assertIn(b"12.50", response.data)
+        self.assertIn(b'<option value="Grill"></option>', response.data)
 
         item_id = item["id"]
         response = self.client.get(f"/menu/{item_id}/edit")
         self.assertIn(b'value="12.50"', response.data)
+        self.assertIn(b'value="Grill"', response.data)
         response = self.post(
-            f"/menu/{item_id}/edit", {"name": "Burger Deluxe", "price": "15.75"}
+            f"/menu/{item_id}/edit", {
+                "name": "Burger Deluxe", "price": "15.75", "category": " Specials "
+            }
         )
         self.assertEqual(response.status_code, 303)
         with self.app.app_context():
             self.assertEqual(get_menu_item(item_id)["price_pence"], 1575)
             self.assertEqual(get_menu_item(item_id)["name"], "Burger Deluxe")
+            self.assertEqual(get_menu_item(item_id)["category"], "Specials")
         self.assertIn(b"15.75", self.client.get("/menu").data)
 
         response = self.post(f"/menu/{item_id}/delete")
@@ -91,6 +99,21 @@ class MenuCrudTests(unittest.TestCase):
             init_db()
             init_db()
             self.assertEqual(get_menu_items()[0]["category"], "Other")
+
+    def test_invalid_category_keeps_existing_item_and_form_value(self):
+        self.post("/menu", {"name": "Rice", "price": "3.00", "category": "Sides"})
+        for path in ("/menu", "/menu/1/edit"):
+            for category in ("   ", "X" * 61):
+                with self.subTest(path=path, category=category):
+                    response = self.post(path, {
+                        "name": "Changed", "price": "4.00", "category": category
+                    })
+                    self.assertEqual(response.status_code, 400)
+                    self.assertIn(b"Category must be between 1 and 60 characters", response.data)
+                    self.assertIn(f'value="{category}"'.encode(), response.data)
+        with self.app.app_context():
+            self.assertEqual(get_menu_item(1)["category"], "Sides")
+            self.assertEqual(len(get_menu_items()), 1)
 
     def test_zero_price_and_trimmed_name(self):
         self.post("/menu", {"name": " Water ", "price": "0"})

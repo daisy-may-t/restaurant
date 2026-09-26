@@ -7,7 +7,7 @@
   <div class="menu-page">
   <section class="menu-editor">
     <h2>{{ 'Edit menu item' if editing_item else 'Menu' }}</h2>
-    <p class="section-intro">{{ 'Update the name or price below.' if editing_item else 'Add dishes and drinks to the menu.' }}</p>
+    <p class="section-intro">{{ 'Update the item below.' if editing_item else 'Add dishes and drinks to the menu.' }}</p>
 
     {% if error %}
       <p class="error-message" role="alert">{{ error }}</p>
@@ -20,11 +20,21 @@
           Name
           <input type="text" name="name" value="{{ form_values.get('name', '') if form_values is defined else (editing_item.name if editing_item else '') }}" required />
         </label>
-        <label>
+        <label class="menu-price-field">
           Price
           <input type="number" name="price" step="0.01" min="0" max="999.99" value="{{ form_values.get('price', '') if form_values is defined else ('%.2f'|format(editing_item.price_pence / 100) if editing_item else '') }}" required />
         </label>
+        <label>
+          Category
+          <input type="text" name="category" list="menu-categories" maxlength="60" value="{{ form_values.get('category', '') if form_values is defined else (editing_item.category if editing_item else 'Other') }}" required />
+        </label>
       </div>
+      <datalist id="menu-categories">
+        <option value="Other"></option>
+        {% for category in menu_items|map(attribute='category')|unique|sort %}
+          {% if category != 'Other' %}<option value="{{ category }}"></option>{% endif %}
+        {% endfor %}
+      </datalist>
       <div class="menu-form-actions">
         <button class="primary" type="submit">{% if not editing_item %}{{ icon('plus') }}{% endif %}{{ 'Save item' if editing_item else 'Add menu item' }}</button>
         {% if editing_item %}
@@ -40,6 +50,7 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Category</th>
           <th>Price</th>
           <th>Actions</th>
         </tr>
@@ -49,6 +60,7 @@
           {% for item in menu_items %}
             <tr>
               <td data-label="Name">{{ item.name }}</td>
+              <td data-label="Category">{{ item.category }}</td>
               <td data-label="Price">&pound;{{ '%.2f'|format(item.price_pence / 100) }}</td>
               <td data-label="Actions">
                 <div class="menu-item-actions">
@@ -63,7 +75,7 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="3" class="empty-state">No menu items yet.</td>
+            <td colspan="4" class="empty-state">No menu items yet.</td>
           </tr>
         {% endif %}
       </tbody>
