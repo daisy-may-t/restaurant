@@ -10,6 +10,7 @@
   --color-border: #dcd7cc;
   --color-danger: #a73535;
   --color-danger-surface: #fff0ed;
+  --color-danger-hover: #f9dfdb;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -99,19 +100,89 @@ h2, h3 {
   color: var(--color-primary);
 }
 
-.toolbar {
-  margin-bottom: var(--space-4);
+h2 {
+  font-family: Georgia, serif;
+}
+
+.menu-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.menu-page h2 {
+  margin-top: 0;
+}
+
+.section-intro {
+  margin-top: 0;
+  color: var(--color-muted);
+}
+
+.menu-form {
+  display: grid;
+  gap: var(--space-4);
 }
 
 .menu-form-fields {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-.inline-form {
-  display: inline;
+.menu-form-fields label {
+  display: grid;
+  flex: 1 1 260px;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.menu-form-fields label:last-child {
+  flex: 0 1 160px;
+}
+
+.menu-form-fields input {
+  width: 100%;
+}
+
+.menu-form-actions,
+.menu-item-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.menu-item-actions form {
+  margin: 0;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.button-link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-muted);
+}
+
+.error-message {
+  padding: var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-control);
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
 }
 
 .area-tabs {
@@ -141,6 +212,10 @@ h2, h3 {
 .area-tabs a[aria-current="page"] {
   background: var(--color-primary);
   color: white;
+}
+
+.area-tabs a:hover:not([aria-current="page"]) {
+  background: var(--color-surface);
 }
 
 .area-tabs a[aria-current="page"]:focus-visible {
@@ -208,6 +283,15 @@ h2, h3 {
   text-align: left;
 }
 
+.menu-list .data-table td[data-label="Actions"] {
+  width: 190px;
+}
+
+.menu-list .empty-state {
+  padding: var(--space-5);
+  text-align: center;
+}
+
 button,
 input,
 select,
@@ -224,6 +308,11 @@ button {
   color: var(--color-text);
   cursor: pointer;
   min-height: var(--control-height);
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-surface-muted);
 }
 
 button.primary {
@@ -244,6 +333,11 @@ button.danger {
   background: var(--color-danger-surface);
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+
+button.danger:hover {
+  border-color: var(--color-danger);
+  background: var(--color-danger-hover);
 }
 
 .back-link,
@@ -280,6 +374,11 @@ button.danger {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   gap: var(--space-5);
+}
+
+.order-list,
+.order-form {
+  min-width: 0;
 }
 
 .order-items {
@@ -338,6 +437,11 @@ button:disabled {
 .remove-item {
   color: var(--color-danger);
   border-color: var(--color-danger);
+}
+
+button.remove-item:hover {
+  border-color: var(--color-danger);
+  background: var(--color-danger-surface);
 }
 
 .item-line-total {
@@ -430,7 +534,7 @@ textarea {
   .panel { padding: var(--space-4); }
 
   .order-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .topbar .container,
@@ -445,6 +549,21 @@ textarea {
 }
 
 @media screen and (max-width: 600px) {
+  .menu-form-fields label:last-child {
+    flex: 1 1 260px;
+  }
+
+  .menu-list .data-table td[data-label="Actions"] {
+    width: auto;
+  }
+
+  .menu-list .data-table tr {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control);
+  }
+
   .order-items li {
     flex-direction: column;
     align-items: stretch;
