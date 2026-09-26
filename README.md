@@ -17,7 +17,7 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
    - Command Prompt: .\.venv\Scripts\activate.bat
 4. Install dependencies:
    pip install -r requirements.txt
-5. Initial database setup (once): `python -m flask --app app setup-db`
+5. Set up or update the database: `python -m flask --app app setup-db` (also run this after app updates that change the database).
 6. Start the app on the host computer: `python app.py`. Keep this terminal open
    while the restaurant uses the app; press Ctrl+C to stop it.
 7. On the host, open `http://localhost:5000`. For phones, run `ipconfig` on the
@@ -38,7 +38,7 @@ A simple local-first restaurant ordering app for tracking menu items, tables, an
 ## Notes
 
 - The database is stored locally in the project under the db folder.
-- The database is only initialized when the explicit setup command is run.
+- Database changes are applied only when the explicit setup command is run.
 - To back up, stop the app and copy `db/restaurant.db` to a safe location outside
   this folder. To restore, stop the app and replace `db/restaurant.db` with that
   copy before starting it again. Do not run `setup-db --reset` to restore data.

@@ -57,7 +57,9 @@ def init_db(reset=False):
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL CHECK (length(trim(name)) > 0),
                     price_pence INTEGER NOT NULL
-                        CHECK (price_pence BETWEEN 0 AND 99999)
+                        CHECK (price_pence BETWEEN 0 AND 99999),
+                    category TEXT NOT NULL DEFAULT 'Other'
+                        CHECK (length(trim(category)) > 0)
                 );
                 CREATE TABLE IF NOT EXISTS tables (
                     id INTEGER PRIMARY KEY,
@@ -83,6 +85,13 @@ def init_db(reset=False):
                     notes TEXT
                 );
             """)
+            columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(menu_items)")
+            }
+            if "category" not in columns:
+                conn.execute("""ALTER TABLE menu_items ADD COLUMN
+                    category TEXT NOT NULL DEFAULT 'Other'
+                    CHECK (length(trim(category)) > 0)""")
             if conn.execute("SELECT COUNT(*) FROM tables").fetchone()[0] == 0:
                 conn.executemany(
                     "INSERT INTO tables (name) VALUES (?)",

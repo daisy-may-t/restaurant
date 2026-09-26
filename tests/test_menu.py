@@ -6,7 +6,7 @@ import unittest
 
 from app import create_app
 from app.db import get_db, init_db
-from app.menu_db import get_menu_item, get_menu_items
+from app.menu_db import create_menu_item, get_menu_item, get_menu_items, update_menu_item
 
 
 class MenuCrudTests(unittest.TestCase):
@@ -66,8 +66,31 @@ class MenuCrudTests(unittest.TestCase):
                         self.assertIn(b'value="Attempt"', response.data)
         with self.app.app_context():
             self.assertEqual(get_menu_items(), [
-                {"id": 1, "name": "Original", "price_pence": 250}
+                {"id": 1, "name": "Original", "price_pence": 250,
+                 "category": "Other"}
             ])
+
+    def test_category_storage_and_existing_database_migration(self):
+        with self.app.app_context():
+            item_id = create_menu_item("Green curry", 950, "Curry")
+            self.assertEqual(get_menu_item(item_id)["category"], "Curry")
+            update_menu_item(item_id, "Green curry", 975)
+            self.assertEqual(get_menu_item(item_id)["category"], "Curry")
+            update_menu_item(item_id, "Green curry", 975, "Chef's picks")
+            self.assertEqual(get_menu_item(item_id)["category"], "Chef's picks")
+
+        old_path = os.path.join(os.path.dirname(self.app.config["DATABASE"]), "existing.db")
+        with closing(sqlite3.connect(old_path)) as old_db:
+            old_db.execute("""CREATE TABLE menu_items (
+                id INTEGER PRIMARY KEY, name TEXT NOT NULL,
+                price_pence INTEGER NOT NULL)""")
+            old_db.execute("INSERT INTO menu_items (name, price_pence) VALUES ('Rice', 300)")
+            old_db.commit()
+        self.app.config["DATABASE"] = old_path
+        with self.app.app_context():
+            init_db()
+            init_db()
+            self.assertEqual(get_menu_items()[0]["category"], "Other")
 
     def test_zero_price_and_trimmed_name(self):
         self.post("/menu", {"name": " Water ", "price": "0"})
