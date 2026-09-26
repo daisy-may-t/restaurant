@@ -4,13 +4,14 @@
 {% block title %}Tables{% endblock %}
 
 {% block content %}
-  <section class="panel">
-    <h2>Tables</h2>
-
-    <nav class="area-tabs" aria-label="Table area">
-      <a href="{{ url_for('tables', area='restaurant') }}" {% if area == 'restaurant' %}aria-current="page"{% endif %}>Restaurant</a>
-      <a href="{{ url_for('tables', area='bar') }}" {% if area == 'bar' %}aria-current="page"{% endif %}>Bar</a>
-    </nav>
+  <section class="tables-page">
+    <div class="tables-heading">
+      <h2>Tables</h2>
+      <nav class="area-tabs" aria-label="Table area">
+        <a href="{{ url_for('tables', area='restaurant') }}" {% if area == 'restaurant' %}aria-current="page"{% endif %}>Restaurant</a>
+        <a href="{{ url_for('tables', area='bar') }}" {% if area == 'bar' %}aria-current="page"{% endif %}>Bar</a>
+      </nav>
+    </div>
 
     <div class="table-grid">
       {% for table in tables %}

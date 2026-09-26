@@ -5,7 +5,7 @@
 
 {% block content %}
   <div class="menu-page">
-  <section class="panel menu-editor">
+  <section class="menu-editor">
     <h2>{{ 'Edit menu item' if editing_item else 'Menu' }}</h2>
     <p class="section-intro">{{ 'Update the name or price below.' if editing_item else 'Add dishes and drinks to the menu.' }}</p>
 
@@ -34,7 +34,7 @@
     </form>
   </section>
 
-  <section class="panel menu-list">
+  <section class="menu-list">
     <h2>Menu items</h2>
     <table class="data-table">
       <thead>
