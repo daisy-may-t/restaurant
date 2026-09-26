@@ -51,8 +51,14 @@
       <div class="order-form">
         <section class="order-form-section">
           <h3>Add item</h3>
-          {% if menu_items %}
-            <form method="post" action="{{ url_for('add_order_item', table_id=table.id) }}">
+          {% if categories %}
+            <nav class="menu-tabs order-menu-tabs" aria-label="Menu categories">
+              <a href="{{ url_for('table_order', table_id=table.id) }}" {% if selected_category is none %}aria-current="page"{% endif %}>All</a>
+              {% for category in categories %}
+                <a href="{{ url_for('table_order', table_id=table.id, category=category) }}" {% if selected_category == category %}aria-current="page"{% endif %}>{{ category }}</a>
+              {% endfor %}
+            </nav>
+            <form method="post" action="{{ url_for('add_order_item', table_id=table.id, category=selected_category) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <label>
                 Menu item

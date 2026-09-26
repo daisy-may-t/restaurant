@@ -158,6 +158,8 @@ h2 {
   display: inline-flex;
   align-items: center;
   flex: none;
+  box-sizing: border-box;
+  max-width: 220px;
   min-height: var(--control-height);
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
@@ -166,6 +168,7 @@ h2 {
   background: var(--color-surface-muted);
   color: var(--color-text);
   text-decoration: none;
+  overflow-wrap: anywhere;
   font-weight: 600;
 }
 
@@ -182,6 +185,11 @@ h2 {
 
 .menu-list {
   border-top-left-radius: 0;
+}
+
+.order-menu-tabs {
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section-intro {

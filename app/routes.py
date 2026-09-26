@@ -116,12 +116,22 @@ def register_routes(app):
         if table is None:
             abort(404)
         order = get_open_order(table_id)
+        menu_items = get_menu_items()
+        categories = sorted({item["category"] for item in menu_items}, key=str.casefold)
+        selected_category = request.args.get("category")
+        if selected_category not in categories:
+            selected_category = None
         return render_template(
             "table_order.html", table=table,
             order_items=order["items"] if order else [],
             order=order,
             total_pence=order["total_pence"] if order else 0,
-            menu_items=get_menu_items(),
+            menu_items=(
+                [item for item in menu_items if item["category"] == selected_category]
+                if selected_category else menu_items
+            ),
+            categories=categories,
+            selected_category=selected_category,
         )
 
     @app.route("/table/<int:table_id>/items", methods=["POST"])
@@ -137,7 +147,13 @@ def register_routes(app):
             abort(404, description="This menu item is no longer available.")
         except QuantityLimitReached:
             abort(400, description="This item is already at the maximum quantity of 999.")
-        return redirect(url_for("table_order", table_id=table_id), code=303)
+        selected_category = request.args.get("category")
+        if selected_category not in {item["category"] for item in get_menu_items()}:
+            selected_category = None
+        return redirect(
+            url_for("table_order", table_id=table_id, category=selected_category),
+            code=303,
+        )
 
     @app.route("/table/<int:table_id>/items/<int:item_id>/quantity", methods=["POST"])
     def update_order_item_quantity(table_id, item_id):

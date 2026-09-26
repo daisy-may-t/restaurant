@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
+from urllib.parse import quote
 
 from app import create_app
 from app.db import get_db, init_db
@@ -57,6 +58,34 @@ class OrderFlowTests(unittest.TestCase):
             db = get_db()
             self.assertEqual(db.execute("SELECT COUNT(*) FROM orders").fetchone()[0], 1)
             self.assertEqual(db.execute("SELECT COUNT(*) FROM order_items").fetchone()[0], 1)
+
+    def test_add_item_categories_filter_and_keep_order_snapshot(self):
+        long_category = "Chef's very special noodle dishes"
+        with self.app.app_context():
+            noodle_id = create_menu_item("Pad Thai", 1095, long_category)
+        selected_url = f"/table/1?category={quote(long_category)}"
+        page = self.client.get(selected_url).get_data(as_text=True)
+        self.assertIn('aria-label="Menu categories"', page)
+        self.assertIn(f'name="menu_item_id" required', page)
+        self.assertIn(f'<option value="{noodle_id}">Pad Thai', page)
+        self.assertNotIn(f'<option value="{self.item_id}">Soup', page)
+        self.assertIn("Chef&#39;s very special noodle dishes", page)
+
+        self.client.get("/table/1")
+        with self.client.session_transaction() as session:
+            token = session["csrf_token"]
+        response = self.client.post(
+            f"/table/1/items?category={quote(long_category)}",
+            data={"menu_item_id": noodle_id, "csrf_token": token},
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertIn("category=Chef", response.headers["Location"])
+        with self.app.app_context():
+            order = get_open_order(1)
+            self.assertEqual(order["items"][0]["item_name"], "Pad Thai")
+            self.assertEqual(order["total_pence"], 1095)
+        self.assertIn(b"Pad Thai", self.client.get("/table/1").data)
+        self.assertIn(b"Soup", self.client.get("/table/1").data)
 
     def test_more_items_reuse_order_and_keep_price_snapshot(self):
         self.add_from_browser(1, self.item_id)
