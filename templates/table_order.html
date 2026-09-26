@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% from '_icons.html' import icon %}
 
 {% block title %}{{ table.name }}{% endblock %}
 
 {% block content %}
-  <a class="back-link" href="{{ url_for('tables', area=table.area) }}">&larr; Back to tables</a>
+  <a class="back-link" href="{{ url_for('tables', area=table.area) }}">{{ icon('arrow-left') }} Back to tables</a>
   <section class="panel order-page">
     <div class="order-page-heading">
       <h2>{{ table.name }}</h2>
@@ -70,7 +71,7 @@
                 {% endfor %}
               </select>
             </label>
-            <button type="submit" class="primary">Add to order</button>
+            <button type="submit" class="primary">{{ icon('plus') }} Add to order</button>
           </form>
         {% else %}
           <p class="empty-state">Add menu items on the Menu page first.</p>
@@ -79,13 +80,13 @@
     </div>
     <div class="order-footer">
       {% if order_items %}
-        <a class="action-link" href="{{ url_for('ticket_preview', table_id=table.id) }}">Preview ticket</a>
+        <a class="action-link" href="{{ url_for('ticket_preview', table_id=table.id) }}">{{ icon('printer') }} Preview ticket</a>
       {% endif %}
       {% if order %}
         <form method="post" action="{{ url_for('reset_table_order', table_id=table.id) }}"
               onsubmit="return confirm('Reset this order? This closes it and clears the table for a new one.');">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="submit" class="danger">Reset order</button>
+          <button type="submit" class="danger">{{ icon('reset') }} Reset order</button>
         </form>
       {% endif %}
     </div>

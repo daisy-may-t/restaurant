@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_icons.html' import icon %}
 
 {% block title %}Menu{% endblock %}
 
@@ -25,7 +26,7 @@
         </label>
       </div>
       <div class="menu-form-actions">
-        <button class="primary" type="submit">{{ 'Save item' if editing_item else 'Add menu item' }}</button>
+        <button class="primary" type="submit">{% if not editing_item %}{{ icon('plus') }}{% endif %}{{ 'Save item' if editing_item else 'Add menu item' }}</button>
         {% if editing_item %}
           <a class="button-link" href="{{ url_for('menu') }}">Cancel</a>
         {% endif %}

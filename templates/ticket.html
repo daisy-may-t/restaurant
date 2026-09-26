@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_icons.html' import icon %}
 
 {% block title %}Ticket preview - {{ table.name }}{% endblock %}
 
@@ -7,8 +8,8 @@
     <h2>Ticket preview</h2>
     <pre>{{ ticket }}</pre>
     <div class="ticket-actions">
-      <button type="button" class="primary" onclick="window.print()">Print ticket</button>
-      <a href="{{ url_for('table_order', table_id=table.id) }}">Back to {{ table.name }}</a>
+      <button type="button" class="primary" onclick="window.print()">{{ icon('printer') }} Print ticket</button>
+      <a class="action-link" href="{{ url_for('table_order', table_id=table.id) }}">{{ icon('arrow-left') }} Back to {{ table.name }}</a>
     </div>
   </section>
 {% endblock %}

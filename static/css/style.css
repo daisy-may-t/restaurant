@@ -53,6 +53,19 @@ body {
   font-weight: 700;
 }
 
+.icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  vertical-align: middle;
+}
+
+.icon--nav-table {
+  width: 26px;
+  height: 20px;
+}
+
 .primary-nav {
   display: flex;
   gap: var(--space-1);
@@ -62,6 +75,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   min-height: var(--control-height);
   padding: 0 var(--space-4);
   border-radius: var(--radius-control);
@@ -246,6 +260,23 @@ h2 {
   border-color: var(--color-primary);
 }
 
+.table-card__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.icon--table {
+  width: 36px;
+  height: 28px;
+}
+
+.icon--chevron {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+}
+
 .table-card--open {
   background: var(--color-occupied);
   border-color: var(--color-occupied);
@@ -301,6 +332,10 @@ textarea {
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   padding: var(--space-2) var(--space-3);
@@ -344,6 +379,7 @@ button.danger:hover {
 .action-link {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: var(--control-height);
   color: var(--color-primary);
   font-weight: 600;
@@ -543,7 +579,10 @@ textarea {
     align-items: flex-start;
   }
 
-  .table-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .table-grid { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
+  .table-card__heading { gap: var(--space-2); }
+  .icon--table { width: 36px; height: 28px; }
+  .icon--chevron { width: 16px; height: 16px; }
   .order-item-actions form { flex-wrap: wrap; }
   .ticket-actions { flex-wrap: wrap; }
 }
