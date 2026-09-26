@@ -142,6 +142,48 @@ h2 {
   font-size: 1.4rem;
 }
 
+.menu-catalog {
+  min-width: 0;
+}
+
+.menu-tabs {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  padding-top: var(--space-1);
+  margin-bottom: -1px;
+}
+
+.menu-tabs a {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-bottom: 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.menu-tabs a:hover {
+  background: var(--color-surface);
+}
+
+.menu-tabs a[aria-current="page"] {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.menu-list {
+  border-top-left-radius: 0;
+}
+
 .section-intro {
   margin-top: 0;
   color: var(--color-muted);

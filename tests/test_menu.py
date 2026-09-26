@@ -115,6 +115,31 @@ class MenuCrudTests(unittest.TestCase):
             self.assertEqual(get_menu_item(1)["category"], "Sides")
             self.assertEqual(len(get_menu_items()), 1)
 
+    def test_category_tabs_filter_and_preserve_selection(self):
+        response = self.post("/menu", {
+            "name": "Green curry", "price": "9", "category": "Curry"
+        })
+        self.assertIn("category=Curry", response.headers["Location"])
+        self.post("/menu", {"name": "Rice", "price": "3", "category": "Other"})
+
+        page = self.client.get("/menu?category=Curry").data
+        self.assertIn(b'aria-label="Menu categories"', page)
+        self.assertIn(b'href="/menu?category=Curry" aria-current="page"', page)
+        self.assertIn(b"Green curry", page)
+        self.assertNotIn(b'data-label="Name">Rice', page)
+        self.assertIn(b'/menu/1/edit?category=Curry', page)
+        self.assertIn(b'/menu/1/delete?category=Curry', page)
+        self.assertIn(b'data-label="Name">Rice', self.client.get("/menu").data)
+        self.assertIn(b'data-label="Name">Rice',
+                      self.client.get("/menu?category=Missing").data)
+
+        response = self.post("/menu/1/edit?category=Curry", {
+            "name": "Green curry", "price": "9", "category": "Special"
+        })
+        self.assertIn("category=Special", response.headers["Location"])
+        response = self.post("/menu/1/delete?category=Special")
+        self.assertEqual(response.headers["Location"], "/menu")
+
     def test_zero_price_and_trimmed_name(self):
         self.post("/menu", {"name": " Water ", "price": "0"})
         self.post("/menu", {"name": "Special", "price": "999.99"})

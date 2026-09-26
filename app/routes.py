@@ -45,6 +45,21 @@ def validate_menu_form(form):
     return (name, int(price * 100), category), None
 
 
+def render_menu_page(selected_category=None, **context):
+    items = get_menu_items()
+    categories = sorted({item["category"] for item in items}, key=str.casefold)
+    if selected_category not in categories:
+        selected_category = None
+    visible_items = (
+        [item for item in items if item["category"] == selected_category]
+        if selected_category else items
+    )
+    return render_template(
+        "menu.html", menu_items=items, visible_menu_items=visible_items,
+        categories=categories, selected_category=selected_category, **context,
+    )
+
+
 def register_routes(app):
     @app.route("/")
     def index():
@@ -62,13 +77,12 @@ def register_routes(app):
         if request.method == "POST":
             values, error = validate_menu_form(request.form)
             if error:
-                return render_template(
-                    "menu.html", menu_items=get_menu_items(),
-                    form_values=request.form, error=error,
+                return render_menu_page(
+                    request.args.get("category"), form_values=request.form, error=error,
                 ), 400
             create_menu_item(*values)
-            return redirect(url_for("menu"), code=303)
-        return render_template("menu.html", menu_items=get_menu_items())
+            return redirect(url_for("menu", category=values[2]), code=303)
+        return render_menu_page(request.args.get("category"))
 
     @app.route("/menu/<int:item_id>/edit", methods=["GET", "POST"])
     def edit_menu_item(item_id):
@@ -78,20 +92,23 @@ def register_routes(app):
         if request.method == "POST":
             values, error = validate_menu_form(request.form)
             if error:
-                return render_template(
-                    "menu.html", menu_items=get_menu_items(), editing_item=item,
+                return render_menu_page(
+                    request.args.get("category"), editing_item=item,
                     form_values=request.form, error=error,
                 ), 400
             if not update_menu_item(item_id, *values):
                 abort(404)
-            return redirect(url_for("menu"), code=303)
-        return render_template("menu.html", menu_items=get_menu_items(), editing_item=item)
+            return redirect(url_for("menu", category=values[2]), code=303)
+        return render_menu_page(request.args.get("category"), editing_item=item)
 
     @app.route("/menu/<int:item_id>/delete", methods=["POST"])
     def delete_menu_item_route(item_id):
         if not delete_menu_item(item_id):
             abort(404)
-        return redirect(url_for("menu"), code=303)
+        selected_category = request.args.get("category")
+        if selected_category not in {item["category"] for item in get_menu_items()}:
+            selected_category = None
+        return redirect(url_for("menu", category=selected_category), code=303)
 
     @app.route("/table/<int:table_id>")
     def table_order(table_id):
