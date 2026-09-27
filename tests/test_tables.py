@@ -44,6 +44,8 @@ class TablePageTests(unittest.TestCase):
         bar_response = self.client.get("/tables?area=bar")
         self.assertIn(b"B10", bar_response.data)
         self.assertEqual(bar_response.data.count(b'<a class="table-card'), 10)
+        all_response = self.client.get("/tables?area=all")
+        self.assertEqual(all_response.data.count(b'<a class="table-card'), 20)
 
     def test_table_page_uses_database_name_and_rejects_unknown_id(self):
         with self.app.app_context():
@@ -68,6 +70,10 @@ class TablePageTests(unittest.TestCase):
         self.assertIn('href="/table/1"', page)
         self.assertEqual(page.count('class="table-card table-card--open"'), 1)
         self.assertIn('0 items · &pound;0.00', page)
+
+        active_page = self.client.get("/tables?active=1").get_data(as_text=True)
+        self.assertIn('href="/table/1"', active_page)
+        self.assertNotIn('href="/table/2"', active_page)
 
     def test_area_filter_and_saved_item_summaries(self):
         with self.app.app_context():
@@ -94,6 +100,8 @@ class TablePageTests(unittest.TestCase):
             db.commit()
 
         restaurant = self.client.get("/tables").get_data(as_text=True)
+        self.assertIn('class="active-filter"', restaurant)
+        self.assertIn('Active only is off; show active tables only', restaurant)
         self.assertIn('3 items · &pound;6.50', restaurant)
         self.assertNotIn('href="/table/11"', restaurant)
         self.assertIn('href="/table/2"', restaurant)
@@ -105,6 +113,27 @@ class TablePageTests(unittest.TestCase):
         self.assertNotIn('href="/table/1"', bar)
         self.assertIn('href="/tables?area=bar" aria-current="page"', bar)
         self.assertEqual(self.client.get("/tables?area=other").status_code, 400)
+
+        active = self.client.get("/tables?area=all&active=1").get_data(as_text=True)
+        self.assertIn('class="active-filter active-filter--on"', active)
+        self.assertIn('Active only is on; show all tables', active)
+        self.assertEqual(active.count('class="table-card table-card--open"'), 2)
+        self.assertIn('href="/table/1"', active)
+        self.assertIn('href="/table/11"', active)
+        self.assertNotIn('href="/table/2"', active)
+        self.assertIn('href="/tables?area=bar&amp;active=1"', active)
+        self.assertIn('href="/tables?area=all"', active)
+
+        bar_active = self.client.get("/tables?area=bar&active=1").get_data(as_text=True)
+        self.assertEqual(bar_active.count('class="table-card table-card--open"'), 1)
+        self.assertNotIn('href="/table/1"', bar_active)
+        self.assertEqual(self.client.get("/tables?active=invalid").status_code, 400)
+
+        with self.app.app_context():
+            get_db().execute("UPDATE orders SET status = 'closed' WHERE table_id = 11")
+            get_db().commit()
+        empty = self.client.get("/tables?area=bar&active=1").get_data(as_text=True)
+        self.assertIn("No active tables in this area.", empty)
 
 if __name__ == "__main__":
     unittest.main()

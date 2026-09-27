@@ -68,9 +68,16 @@ def register_routes(app):
     @app.route("/tables")
     def tables():
         area = request.args.get("area", "restaurant")
-        if area not in ("restaurant", "bar"):
-            abort(400, description="Choose Restaurant or Bar.")
-        return render_template("tables.html", tables=get_tables(area), area=area)
+        if area not in ("restaurant", "bar", "all"):
+            abort(400, description="Choose Restaurant, Bar, or All.")
+        active = request.args.get("active")
+        if active not in (None, "1"):
+            abort(400, description="Invalid active filter.")
+        active_only = active == "1"
+        return render_template(
+            "tables.html", tables=get_tables(area, active_only),
+            area=area, active_only=active_only,
+        )
 
     @app.route("/menu", methods=["GET", "POST"])
     def menu():

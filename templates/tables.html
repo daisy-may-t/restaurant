@@ -7,17 +7,24 @@
   <section class="tables-page">
     <div class="tables-heading">
       <h2>Tables</h2>
-      <nav class="area-tabs" aria-label="Table area">
-        <a href="{{ url_for('tables', area='restaurant') }}" {% if area == 'restaurant' %}aria-current="page"{% endif %}>Restaurant</a>
-        <a href="{{ url_for('tables', area='bar') }}" {% if area == 'bar' %}aria-current="page"{% endif %}>Bar</a>
-      </nav>
+      <div class="table-filters">
+        <a class="active-filter{{ ' active-filter--on' if active_only else '' }}" href="{{ url_for('tables', area=area, active=none if active_only else '1') }}" aria-label="{{ 'Active only is on; show all tables' if active_only else 'Active only is off; show active tables only' }}">
+          <span>Active only?</span>
+          <span class="active-filter__switch" aria-hidden="true"><span></span></span>
+        </a>
+        <nav class="area-tabs" aria-label="Table area">
+          <a href="{{ url_for('tables', area='restaurant', active='1' if active_only else none) }}" {% if area == 'restaurant' %}aria-current="page"{% endif %}>Restaurant</a>
+          <a href="{{ url_for('tables', area='bar', active='1' if active_only else none) }}" {% if area == 'bar' %}aria-current="page"{% endif %}>Bar</a>
+          <a href="{{ url_for('tables', area='all', active='1' if active_only else none) }}" {% if area == 'all' %}aria-current="page"{% endif %}>All</a>
+        </nav>
+      </div>
     </div>
 
     <div class="table-grid">
       {% for table in tables %}
         <a class="table-card{{ ' table-card--open' if table.has_open_order else '' }}" href="{{ url_for('table_order', table_id=table.id) }}">
           <span class="table-card__heading">
-            {{ icon('stool' if area == 'bar' else 'table', 'icon--table') }}
+            {{ icon('stool' if table.area == 'bar' else 'table', 'icon--table') }}
             <span class="table-card__name">{{ table.name }}</span>
             {{ icon('chevron-right', 'icon--chevron') }}
           </span>
@@ -30,5 +37,8 @@
         </a>
       {% endfor %}
     </div>
+    {% if not tables %}
+      <p class="empty-state">{{ 'No active tables in this area.' if active_only else 'No tables in this area.' }}</p>
+    {% endif %}
   </section>
 {% endblock %}
