@@ -576,6 +576,22 @@ button.danger:hover {
   overflow-wrap: anywhere;
 }
 
+.order-item-prices {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  font-size: 0.95rem;
+}
+
+.item-unit-price {
+  font-size: 0.85rem;
+}
+
+.item-line-total {
+  color: var(--color-text);
+}
+
 .order-item-actions,
 .order-item-actions form {
   display: flex;
@@ -589,9 +605,10 @@ button.danger:hover {
 
 .quantity-controls button,
 .remove-item {
-  width: var(--control-height);
+  width: 40px;
+  min-height: 40px;
   padding: 0;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
 }
 
 .quantity-controls span {
@@ -733,12 +750,20 @@ textarea {
   }
 
   .order-items li {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
   }
 
-  .order-item-actions {
-    justify-content: space-between;
+  .order-item-details {
+    flex: 1 1 0;
+    flex-direction: column;
+  }
+
+  .order-item-actions,
+  .order-item-actions form {
+    flex-wrap: nowrap;
+    gap: var(--space-1);
   }
 
   .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; }

@@ -66,7 +66,11 @@
               <li>
                 <div class="order-item-details">
                   <strong>{{ item.item_name }}</strong>
-                  <span class="item-unit-price">&pound;{{ '%.2f'|format(item.unit_price_pence / 100) }} each</span>
+                  <span class="order-item-prices">
+                    <span class="item-unit-price">&pound;{{ '%.2f'|format(item.unit_price_pence / 100) }} each</span>
+                    <span aria-hidden="true">&middot;</span>
+                    <strong class="item-line-total">&pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</strong>
+                  </span>
                 </div>
                 <div class="order-item-actions">
                   <form class="quantity-controls" method="post" action="{{ url_for('update_order_item_quantity', table_id=table.id, item_id=item.id) }}">
@@ -75,7 +79,6 @@
                     <span aria-label="Quantity: {{ item.quantity }}">{{ item.quantity }}</span>
                     <button type="submit" name="change" value="1" aria-label="Increase quantity of {{ item.item_name }}" {% if item.quantity == 999 %}disabled{% endif %}>+</button>
                   </form>
-                  <strong class="item-line-total">&pound;{{ '%.2f'|format(item.unit_price_pence * item.quantity / 100) }}</strong>
                   <form method="post" action="{{ url_for('remove_order_item', table_id=table.id, item_id=item.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <button type="submit" class="remove-item" aria-label="Remove {{ item.item_name }}">&times;</button>
