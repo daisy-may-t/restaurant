@@ -6,6 +6,7 @@
 {% block content %}
   <a class="back-link" href="{{ url_for('tables', area=table.area) }}">{{ icon('arrow-left') }} Back to tables</a>
   <section class="order-page">
+    <p id="order-update-status" class="visually-hidden" role="status"></p>
     <div class="order-page-heading">
       <h2>{{ table.name }}</h2>
       {% if order %}
