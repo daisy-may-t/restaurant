@@ -66,6 +66,8 @@ class OrderFlowTests(unittest.TestCase):
         selected_url = f"/table/1?category={quote(long_category)}"
         page = self.client.get(selected_url).get_data(as_text=True)
         self.assertIn('aria-label="Menu categories"', page)
+        self.assertIn('id="menu-categories"', page)
+        self.assertIn('aria-current="page"', page)
         self.assertLess(page.index('</nav>', page.index('aria-label="Menu categories"')),
                         page.index('class="order-form-section order-menu-panel order-menu-panel--tabbed"'))
         self.assertIn(f'name="menu_item_id" value="{noodle_id}"', page)

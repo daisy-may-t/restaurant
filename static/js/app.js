@@ -1,5 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
-  if (!document.querySelector(".order-page")) return;
+  const categoryScrollKey = "category-tab-scroll";
+  try {
+    const saved = sessionStorage.getItem(categoryScrollKey);
+    if (saved) {
+      sessionStorage.removeItem(categoryScrollKey);
+      const { url, scrollY, savedAt } = JSON.parse(saved);
+      if (url === window.location.href && Date.now() - savedAt < 10000) {
+        window.addEventListener("pageshow", () => {
+          setTimeout(() => window.scrollTo(0, scrollY), 0);
+        }, { once: true });
+      }
+    }
+  } catch {}
+
+  const rememberCategoryScroll = (event) => {
+    if (event.defaultPrevented) return;
+    const link = event.target.closest(".menu-tabs a[href]");
+    if (!link) return;
+    try {
+      sessionStorage.setItem(categoryScrollKey, JSON.stringify({
+        url: link.href,
+        scrollY: window.scrollY,
+        savedAt: Date.now(),
+      }));
+    } catch {}
+  };
+
+  if (!document.querySelector(".order-page")) {
+    document.addEventListener("click", rememberCategoryScroll);
+    return;
+  }
 
   let savedNotes = document.getElementById("order-notes").value;
   let allowUnload = false;
@@ -86,6 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!allowUnload) event.preventDefault();
     }
   });
+
+  document.addEventListener("click", rememberCategoryScroll);
 
   window.addEventListener("beforeunload", (event) => {
     if (hasUnsavedNotes() && !allowUnload) {

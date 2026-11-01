@@ -124,6 +124,7 @@ class MenuCrudTests(unittest.TestCase):
 
         page = self.client.get("/menu?category=Curry").data
         self.assertIn(b'aria-label="Menu categories"', page)
+        self.assertIn(b'id="menu-categories"', page)
         self.assertIn(b'href="/menu?category=Curry" aria-current="page"', page)
         self.assertIn(b"Green curry", page)
         self.assertNotIn(b'data-label="Name">Rice', page)

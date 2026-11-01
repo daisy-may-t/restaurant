@@ -26,10 +26,10 @@
         </label>
         <label>
           Category
-          <input type="text" name="category" list="menu-categories" maxlength="60" value="{{ form_values.get('category', '') if form_values is defined else (editing_item.category if editing_item else 'Other') }}" required />
+          <input type="text" name="category" list="menu-category-suggestions" maxlength="60" value="{{ form_values.get('category', '') if form_values is defined else (editing_item.category if editing_item else 'Other') }}" required />
         </label>
       </div>
-      <datalist id="menu-categories">
+      <datalist id="menu-category-suggestions">
         <option value="Other"></option>
         {% for category in categories %}
           {% if category != 'Other' %}<option value="{{ category }}"></option>{% endif %}
@@ -45,7 +45,7 @@
   </section>
 
   <div class="menu-catalog">
-  <nav class="menu-tabs" aria-label="Menu categories">
+  <nav id="menu-categories" class="menu-tabs" aria-label="Menu categories">
     <a href="{{ url_for('menu') }}" {% if selected_category is none %}aria-current="page"{% endif %}>All</a>
     {% for category in categories %}
       <a href="{{ url_for('menu', category=category) }}" {% if selected_category == category %}aria-current="page"{% endif %}>{{ category }}</a>
